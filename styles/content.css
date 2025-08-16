@@ -1,0 +1,175 @@
+/* Content styles for LeetCode AI Assistant integration */
+
+/* Ensure our elements don't interfere with LeetCode's styles */
+.leetcode-ai-toggle,
+.leetcode-ai-panel,
+.leetcode-ai-panel * {
+  box-sizing: border-box !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Toggle button styles */
+.leetcode-ai-toggle {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 10000 !important;
+  background: #1a1a1a !important;
+  color: white !important;
+  border: 2px solid #00d4aa !important;
+  border-radius: 8px !important;
+  padding: 10px 15px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.3s ease !important;
+  user-select: none !important;
+}
+
+.leetcode-ai-toggle:hover {
+  background: #2a2a2a !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.leetcode-ai-toggle.active {
+  background: #00d4aa !important;
+  color: #1a1a1a !important;
+}
+
+/* Panel styles */
+.leetcode-ai-panel {
+  position: fixed !important;
+  top: 80px !important;
+  right: 20px !important;
+  width: 350px !important;
+  height: calc(100vh - 120px) !important;
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  z-index: 9999 !important;
+  display: none !important;
+  overflow: hidden !important;
+}
+
+.leetcode-ai-panel.left {
+  left: 20px !important;
+  right: auto !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .leetcode-ai-panel {
+    width: 300px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .leetcode-ai-toggle {
+    top: 10px !important;
+    right: 10px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  
+  .leetcode-ai-panel {
+    top: 60px !important;
+    right: 10px !important;
+    width: 280px !important;
+    height: calc(100vh - 80px) !important;
+  }
+  
+  .leetcode-ai-panel.left {
+    left: 10px !important;
+    right: auto !important;
+  }
+}
+
+/* Ensure our elements are above LeetCode's modals and overlays */
+.leetcode-ai-toggle,
+.leetcode-ai-panel {
+  z-index: 999999 !important;
+}
+
+/* Hide our elements when LeetCode has fullscreen overlays */
+body.modal-open .leetcode-ai-toggle,
+body.modal-open .leetcode-ai-panel {
+  display: none !important;
+}
+
+/* Animation for panel show/hide */
+.leetcode-ai-panel.show {
+  display: block !important;
+  animation: slideIn 0.3s ease-out !important;
+}
+
+.leetcode-ai-panel.hide {
+  animation: slideOut 0.3s ease-in !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Ensure text in our elements is readable */
+.leetcode-ai-toggle *,
+.leetcode-ai-panel * {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* Override any conflicting LeetCode styles */
+.leetcode-ai-panel input,
+.leetcode-ai-panel button,
+.leetcode-ai-panel select {
+  border-radius: 6px !important;
+  border: 1px solid #444 !important;
+  background: #2a2a2a !important;
+  color: #e0e0e0 !important;
+}
+
+.leetcode-ai-panel button:hover {
+  background: #444 !important;
+  border-color: #00d4aa !important;
+}
+
+/* Scrollbar styling for our panel */
+.leetcode-ai-panel ::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.leetcode-ai-panel ::-webkit-scrollbar-track {
+  background: #1a1a1a !important;
+}
+
+.leetcode-ai-panel ::-webkit-scrollbar-thumb {
+  background: #444 !important;
+  border-radius: 3px !important;
+}
+
+.leetcode-ai-panel ::-webkit-scrollbar-thumb:hover {
+  background: #555 !important;
+}

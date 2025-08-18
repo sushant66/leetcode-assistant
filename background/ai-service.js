@@ -30,21 +30,17 @@ class AIService {
     return await this.makeAIRequest(prompt, settings, 'problem_analysis');
   }
 
-  // Generate a hint for the user
-  async generateHint(requestData, settings) {
-    const prompt = this.createHintPrompt(requestData);
-    return await this.makeAIRequest(prompt, settings, 'hint_generation');
-  }
 
   // Review user's code
   async reviewCode(codeData, settings) {
     const prompt = this.createCodeReviewPrompt(codeData);
-    return await this.makeAIRequest(prompt, settings, 'code_review');
+    console.log("CODE REVIEW PROMPT-->", prompt);
+    return await this.makeAIRequest(prompt, settings, 'code_review', 4000);
   }
 
   // Generate a chat response for user interaction
   async generateChatResponse(chatData, settings) {
-    const prompt = this.createChatPrompt(chatData);
+    const prompt = this.createChatPrompt(chatData, settings);
     return await this.makeAIRequest(prompt, settings, 'chat_response');
   }
 
@@ -70,136 +66,251 @@ Respond in JSON format:
 }`;
   }
 
-  // Create prompt for hint generation
-  createHintPrompt(requestData) {
-    const { problemData, currentCode, hintLevel = 1 } = requestData;
+
+  // Get hint guidance based on type (1-4) and progressive level (1-5)
+  getHintGuidance(hintType, progressiveLevel) {
+    const typeTemplates = {
+      1: this.getHighLevelGuidance(progressiveLevel),
+      2: this.getAlgorithmGuidance(progressiveLevel),
+      3: this.getImplementationGuidance(progressiveLevel),
+      4: this.getDetailedGuidance(progressiveLevel)
+    };
     
-    let hintLevelGuidance = '';
-    let rules = '';
+    return typeTemplates[hintType] || typeTemplates[1];
+  }
+
+  // Type 1: High-level approach hints
+  getHighLevelGuidance(level) {
+    const templates = {
+      1: {
+        style: "High-level conceptual",
+        guidance: "Give a very high-level conceptual hint about the problem approach.",
+        rules: "- Focus on the big picture and problem category\n- Use conceptual language, not technical terms\n- Ask thought-provoking questions about the problem nature\n- Avoid mentioning specific algorithms or data structures"
+      },
+      2: {
+        style: "High-level directional",
+        guidance: "Give a clearer high-level direction while staying conceptual.",
+        rules: "- Point toward the general problem category\n- Can mention broad concepts like 'searching', 'organizing', 'tracking'\n- Still avoid specific algorithms\n- Give more direction than level 1"
+      },
+      3: {
+        style: "High-level structural",
+        guidance: "Give structural insight about the high-level approach.",
+        rules: "- Describe the general structure of the solution\n- Can mention broad categories like 'two-pass', 'single-pass'\n- Still focus on approach rather than implementation\n- Guide toward the solution pattern"
+      },
+      4: {
+        style: "High-level comprehensive",
+        guidance: "Give comprehensive high-level guidance about the complete approach.",
+        rules: "- Explain the overall strategy and approach\n- Can mention general algorithmic concepts\n- Describe the flow of the solution\n- Still avoid detailed implementation"
+      },
+      5: {
+        style: "High-level complete",
+        guidance: "Give complete high-level understanding of the solution approach.",
+        rules: "- Provide full strategic overview\n- Explain why this approach works\n- Can mention algorithmic paradigms\n- Give complete conceptual understanding"
+      }
+    };
     
-    switch (hintLevel) {
-      case 1:
-        hintLevelGuidance = 'a very small, thought-provoking hint (1 sentence max)';
-        rules = `- Be extremely vague and Socratic
-- Use only questions to guide thinking
-- Never mention algorithms, data structures, or approaches
-- Make them discover everything themselves`;
-        break;
-      case 2:
-        hintLevelGuidance = 'a gentle nudge towards the right direction without naming the approach';
-        rules = `- Still be Socratic but slightly more specific
-- Can hint at the type of problem (searching, organizing, etc.)
-- Still use mostly questions
-- Don't name specific techniques`;
-        break;
-      case 3:
-        hintLevelGuidance = 'a more specific hint that gives some direction';
-        rules = `- Can mention general concepts (like "fast lookups" or "keeping track")
-- Mix of questions and gentle guidance
-- Still avoid naming specific algorithms
-- Give clearer direction`;
-        break;
-      case 4:
-        hintLevelGuidance = 'detailed guidance with specific suggestions';
-        rules = `- Can mention specific data structures or techniques
-- Give more concrete advice
-- Still avoid complete step-by-step solutions
-- Be more helpful and direct`;
-        break;
-      case 5:
-        hintLevelGuidance = 'very helpful guidance that nearly explains the approach';
-        rules = `- Be very specific about the approach
-- Can mention exact algorithms or data structures
-- Give clear implementation hints
-- Stop just short of writing the code for them`;
-        break;
-    }
+    return templates[level] || templates[1];
+  }
 
-    const truncatedCode = currentCode && currentCode.length > 150 
-      ? currentCode.substring(0, 150) + '...' 
-      : currentCode;
+  // Type 2: Algorithm suggestions hints
+  getAlgorithmGuidance(level) {
+    const templates = {
+      1: {
+        style: "Algorithm category",
+        guidance: "Suggest the general category of algorithm needed.",
+        rules: "- Mention broad algorithmic categories\n- Focus on the type of approach needed\n- Use questions to guide toward algorithm families\n- Keep suggestions general"
+      },
+      2: {
+        style: "Algorithm direction",
+        guidance: "Point toward specific algorithm families or approaches.",
+        rules: "- Suggest specific algorithm families\n- Can mention algorithm categories like 'greedy', 'divide-and-conquer'\n- Guide toward the right algorithmic thinking\n- Still let them discover the exact algorithm"
+      },
+      3: {
+        style: "Algorithm specific",
+        guidance: "Suggest specific algorithms or data structure choices.",
+        rules: "- Can mention specific algorithms by name\n- Suggest appropriate data structures\n- Explain why certain algorithms fit\n- Guide toward implementation approach"
+      },
+      4: {
+        style: "Algorithm detailed",
+        guidance: "Provide detailed algorithm suggestions with reasoning.",
+        rules: "- Explain specific algorithms and why they work\n- Mention time/space complexity considerations\n- Suggest optimization techniques\n- Give algorithmic implementation hints"
+      },
+      5: {
+        style: "Algorithm comprehensive",
+        guidance: "Give complete algorithmic guidance and optimization strategies.",
+        rules: "- Provide full algorithmic solution strategy\n- Explain complexity analysis\n- Suggest optimizations and edge case handling\n- Give near-complete algorithmic roadmap"
+      }
+    };
+    
+    return templates[level] || templates[1];
+  }
 
-    return `You are a coding mentor. This is hint level ${hintLevel}/5 for: ${problemData.title}
-Current code: ${truncatedCode || 'None'}
+  // Type 3: Implementation hints
+  getImplementationGuidance(level) {
+    const templates = {
+      1: {
+        style: "Implementation structure",
+        guidance: "Give hints about how to structure the implementation.",
+        rules: "- Focus on code organization and structure\n- Suggest general implementation patterns\n- Guide toward the right code flow\n- Avoid specific syntax details"
+      },
+      2: {
+        style: "Implementation approach",
+        guidance: "Suggest specific implementation approaches and patterns.",
+        rules: "- Mention specific programming patterns\n- Suggest data structure usage\n- Guide toward implementation strategy\n- Can mention general code constructs"
+      },
+      3: {
+        style: "Implementation specific",
+        guidance: "Give specific implementation guidance and code structure hints.",
+        rules: "- Suggest specific code patterns and constructs\n- Mention variable names and data types\n- Guide toward specific implementation details\n- Can reference common coding patterns"
+      },
+      4: {
+        style: "Implementation detailed",
+        guidance: "Provide detailed implementation guidance with specific code hints.",
+        rules: "- Give specific variable and function suggestions\n- Mention exact conditions and loop structures\n- Suggest error handling and edge cases\n- Provide near-code-level guidance"
+      },
+      5: {
+        style: "Implementation complete",
+        guidance: "Give comprehensive implementation guidance that's almost complete code.",
+        rules: "- Provide step-by-step implementation roadmap\n- Give specific code patterns and logic\n- Include optimization and edge case handling\n- Stop just short of writing the complete function"
+      }
+    };
+    
+    return templates[level] || templates[1];
+  }
 
-Give ${hintLevelGuidance}
-
-RULES FOR LEVEL ${hintLevel}:
-${rules}
-
-JSON response:
-{
-  "hint": "your hint appropriate for level ${hintLevel}",
-  "followUp": "${hintLevel <= 2 ? 'a thought-provoking question' : 'next step or clarification'}"
-}`;
+  // Type 4: Detailed guidance hints
+  getDetailedGuidance(level) {
+    const templates = {
+      1: {
+        style: "Detailed conceptual",
+        guidance: "Provide detailed explanation of the problem and solution concept.",
+        rules: "- Explain the problem thoroughly\n- Describe what the solution needs to accomplish\n- Break down the requirements clearly\n- Set up the foundation for detailed guidance"
+      },
+      2: {
+        style: "Detailed strategic",
+        guidance: "Give detailed strategic guidance about the solution approach.",
+        rules: "- Explain the complete strategy in detail\n- Break down the solution into logical steps\n- Describe the reasoning behind each step\n- Provide detailed problem-solving methodology"
+      },
+      3: {
+        style: "Detailed technical",
+        guidance: "Provide detailed technical guidance with specific implementation details.",
+        rules: "- Give specific technical implementation details\n- Explain data structure choices and usage\n- Provide detailed algorithm steps\n- Include complexity analysis and optimizations"
+      },
+      4: {
+        style: "Detailed comprehensive",
+        guidance: "Give comprehensive detailed guidance covering all aspects of the solution.",
+        rules: "- Provide complete detailed solution breakdown\n- Include all edge cases and error handling\n- Give optimization tips and alternative approaches\n- Cover testing and validation strategies"
+      },
+      5: {
+        style: "Detailed expert",
+        guidance: "Provide expert-level detailed guidance with advanced optimizations and insights.",
+        rules: "- Give expert-level implementation guidance\n- Include advanced optimizations and techniques\n- Provide multiple solution approaches with trade-offs\n- Include production-ready considerations"
+      }
+    };
+    
+    return templates[level] || templates[1];
   }
 
   // Create prompt for code review
   createCodeReviewPrompt(codeData) {
     const { problemData, currentCode } = codeData;
 
-    return `Review this LeetCode code BRIEFLY (max 100 words total):
+    // Truncate description if too long to save tokens
+    const truncatedDescription = problemData.description && problemData.description.length > 300
+      ? problemData.description.substring(0, 300) + '...'
+      : problemData.description;
 
-Problem: ${problemData.title}
-Code:
+    return `You are an expert code reviewer for LeetCode problems. Analyze this solution comprehensively:
+
+PROBLEM CONTEXT:
+Title: ${problemData.title}
+Difficulty: ${problemData.difficulty}
+Description: ${truncatedDescription}
+
+STUDENT'S CODE:
 ${currentCode}
 
-RULES:
-- Be extremely concise (1-2 sentences per section)
-- Focus only on major issues or improvements
-- Don't explain obvious things
-- Skip sections if nothing important to say
+ANALYSIS REQUIREMENTS:
+1. **Correctness**: Does the code actually solve the given problem? Check if it handles the problem requirements correctly.
+2. **Completeness**: Is this a complete solution or just a partial/helper function?
+3. **Logic Issues**: Look for bugs, infinite loops, incorrect conditions, or missing logic.
+4. **Time/Space Complexity**: Analyze the current complexity and identify if it's optimal for this specific problem.
+5. **Edge Cases**: Identify cases the code might not handle (empty input, edge values, etc.).
+6. **Optimization**: Suggest more efficient algorithms or approaches if they exist.
+7. **Alternative Solutions**: Mention fundamentally different approaches if applicable.
 
-JSON format:
+CRITICAL INSTRUCTIONS:
+- KEEP IT SHORT: Maximum 3-4 sentences (50-60 words total)
+- BE DIRECT: Point out the main issue immediately 
+- If incomplete/wrong, say so in the first sentence
+- Give ONE key next step
+
+Format your response as JSON:
 {
-  "issues": ["major bugs only"],
-  "suggestions": ["key improvements only"], 
-  "edgeCases": ["critical edge cases only"],
-  "complexity": "brief O(n) analysis"
+  "response": "Very brief, honest assessment. Maximum 3-4 sentences. Focus on the main issue and one improvement."
 }`;
   }
 
-  // Create prompt for chat response
-  createChatPrompt(chatData) {
-    const { message, problemData } = chatData;
+  // Create prompt for chat response (unified system with hint types)
+  createChatPrompt(chatData, settings) {
+    const { message, problemData, chatHistory = [], isHintRequest = false } = chatData;
+    const hintType = settings.hintLevel || 1; // User's preferred hint type (1-4)
     
     const truncatedDescription = problemData.description && problemData.description.length > 150
       ? problemData.description.substring(0, 150) + '...'
       : problemData.description;
 
-    return `You are a Socratic coding mentor for LeetCode problems. A student is asking for help with:
+    // Build conversation history context
+    let conversationContext = '';
+    if (chatHistory.length > 0) {
+      conversationContext = '\nPrevious conversation:\n';
+      chatHistory.forEach(exchange => {
+        conversationContext += `Student: "${exchange.user}"\n`;
+        conversationContext += `Assistant: "${exchange.assistant}"\n`;
+      });
+      conversationContext += '\n';
+    }
+
+    // Determine progressive level based on conversation history and request type
+    let progressiveLevel;
+    if (isHintRequest) {
+      // For hint requests, count previous hint exchanges
+      const hintExchanges = chatHistory.filter(exchange => 
+        exchange.user.toLowerCase().includes('hint') || 
+        exchange.assistant.toLowerCase().includes('hint')
+      ).length;
+      progressiveLevel = Math.min(hintExchanges + 1, 5);
+    } else {
+      // For regular chat, use conversation length but cap at 3
+      progressiveLevel = Math.min(chatHistory.length + 1, 3);
+    }
+
+    // Get the appropriate guidance and rules based on hint type and progressive level
+    const { guidance, rules, style } = this.getHintGuidance(hintType, progressiveLevel);
+    
+    return `You are a coding mentor for LeetCode problems. A student is asking for help with:
 
 Problem: ${problemData.title}
-Description: ${truncatedDescription}
-Student's question: "${message}"
+Description: ${truncatedDescription}${conversationContext}Student's current question: "${message}"
 
-IMPORTANT RULES:
-- Give ONLY small, focused hints (1-2 sentences max)
-- Never reveal the algorithm or data structure directly
-- Use guiding questions instead of explanations
-- Don't give step-by-step approaches
-- Focus on making the student think, not giving answers
-- If they ask for a hint, give just the smallest nudge in the right direction
+${isHintRequest ? `This is a HINT REQUEST (level ${progressiveLevel}/5) in ${style} style.` : `This is a general question. Use ${style} style guidance.`}
 
-Example good responses:
-- "What happens if you pick the first number? What would you need to find next?"
-- "Think about what data structure helps with fast lookups."
-- "Have you considered what you're really searching for?"
+${guidance}
 
-Example bad responses (DON'T do these):
-- Long explanations of the approach
-- Mentioning specific algorithms like "hash map" or "two pointers"
-- Giving multiple hints at once
-- Explaining the complete logic
+RULES:
+${rules}
+- Use the conversation history to avoid repeating yourself
+- Keep responses concise (1-3 sentences)
+- If this is a hint request, follow the progressive hint system
 
 Respond in JSON format:
 {
-  "response": "your brief, Socratic response to guide the student's thinking"
+  "response": "your response following the ${style} approach"
 }`;
   }
 
   // Make API request to the appropriate AI provider
-  async makeAIRequest(prompt, settings, requestType) {
+  async makeAIRequest(prompt, settings, requestType, maxTokens = 1500) {
     const { apiKey, aiProvider } = settings;
     
     if (!apiKey) {
@@ -212,7 +323,7 @@ Respond in JSON format:
     }
 
     try {
-      const requestBody = this.formatRequest(prompt, provider, aiProvider);
+      const requestBody = this.formatRequest(prompt, provider, aiProvider, maxTokens);
       const headers = provider.headers(apiKey);
 
       const response = await fetch(provider.apiUrl + (aiProvider.includes('gemini') ? `?key=${apiKey}` : ''), {
@@ -235,7 +346,7 @@ Respond in JSON format:
   }
 
   // Format request based on provider
-  formatRequest(prompt, provider, aiProvider) {
+  formatRequest(prompt, provider, aiProvider, maxTokens = 1500) {
     if (aiProvider.includes('gpt')) {
       return {
         model: provider.model,
@@ -249,8 +360,9 @@ Respond in JSON format:
             content: prompt
           }
         ],
-        max_tokens: 1500,
-        temperature: 0.7
+        max_tokens: maxTokens,
+        temperature: 0.7,
+        response_format: { type: "json_object" }
       };
     } else if (aiProvider.includes('gemini')) {
       return {
@@ -264,8 +376,9 @@ Respond in JSON format:
           }
         ],
         generationConfig: {
-          maxOutputTokens: 1500,
-          temperature: 0.7
+          maxOutputTokens: maxTokens,
+          temperature: 0.7,
+          responseMimeType: "application/json"
         }
       };
     }

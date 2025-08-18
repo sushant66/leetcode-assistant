@@ -29,9 +29,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       handleProblemAnalysis(message.data, sendResponse);
       return true; // Keep message channel open for async response
       
-    case 'GET_HINT':
-      handleHintRequest(message.data, sendResponse);
-      return true;
       
     case 'REVIEW_CODE':
       handleCodeReview(message.data, sendResponse);
@@ -75,26 +72,6 @@ async function handleProblemAnalysis(problemData, sendResponse) {
   }
 }
 
-// Handle hint requests
-async function handleHintRequest(requestData, sendResponse) {
-  try {
-    const settings = await getSettings();
-    if (!settings.apiKey) {
-      sendResponse({ 
-        error: 'API key not configured. Please set your API key in the extension settings.' 
-      });
-      return;
-    }
-    
-    const hint = await generateHintWithAI(requestData, settings);
-    sendResponse({ success: true, data: hint });
-    
-  } catch (error) {
-    sendResponse({ 
-      error: 'Failed to generate hint: ' + error.message 
-    });
-  }
-}
 
 // Handle code review
 async function handleCodeReview(codeData, sendResponse) {
@@ -210,24 +187,6 @@ async function analyzeProblemWithAI(problemData, settings) {
   }
 }
 
-async function generateHintWithAI(requestData, settings) {
-  try {
-    // Validate API key
-    if (!aiService.validateApiKey(settings.apiKey, settings.aiProvider)) {
-      throw new Error('Invalid API key format for selected provider');
-    }
-    
-    return await aiService.generateHint(requestData, settings);
-  } catch (error) {
-    // Return fallback response
-    return {
-      level: requestData.hintLevel || 1,
-      hint: 'API unavailable. Consider what data structures or algorithms might be helpful for this problem type.',
-      followUp: 'What patterns do you see in the problem description?',
-      error: error.message
-    };
-  }
-}
 
 async function reviewCodeWithAI(codeData, settings) {
   try {

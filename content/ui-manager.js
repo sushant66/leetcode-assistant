@@ -5,8 +5,11 @@ class LeetCodeUIManager {
     this.assistantPanel = null;
     this.isInitialized = false;
     this.isPanelVisible = false;
-    this.hintLevel = 1; // Track progressive hint level (1-5)
+    this.hintLevel = 1; // Track progressive hint level (1-5) - will be updated from settings
+    this.defaultHintLevel = 1; // Default hint level from settings
     this.currentProblemUrl = null; // Track current problem to reset hint level
+    this.chatHistory = []; // Store last 3 conversation pairs {user: "", assistant: ""}
+    this.maxHistoryPairs = 3; // Limit to control token costs
     this.settings = {
       panelPosition: 'right',
       panelWidth: '350px'
@@ -33,6 +36,9 @@ class LeetCodeUIManager {
       chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (response) => {
         if (response && response.success) {
           this.settings = { ...this.settings, ...response.data };
+          // Set default hint level from settings
+          this.defaultHintLevel = this.settings.hintLevel || 1;
+          this.hintLevel = this.defaultHintLevel;
         }
         resolve();
       });
@@ -201,6 +207,7 @@ class LeetCodeUIManager {
           <button class="action-btn" data-action="hint">💡 Get Hint</button>
           <button class="action-btn" data-action="review">🔍 Review Code</button>
           <button class="action-btn" data-action="explain">📚 Explain Concept</button>
+          <button class="action-btn" data-action="direct-help">🎯 Direct Help</button>
         </div>
       </div>
     `;
@@ -413,8 +420,7 @@ class LeetCodeUIManager {
     const sendMessage = () => {
       const message = chatInput.value.trim();
       if (message) {
-        this.addUserMessage(message);
-        this.handleUserMessage(message);
+        this.sendChatMessage(message);
         chatInput.value = '';
       }
     };
@@ -502,8 +508,16 @@ class LeetCodeUIManager {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
+  // Send chat message (unified function for both regular chat and hint requests)
+  sendChatMessage(message, isHintRequest = false) {
+    // Add user message to chat
+    this.addUserMessage(message);
+    
+    this.handleUserMessage(message, isHintRequest);
+  }
+
   // Handle user messages
-  handleUserMessage(message) {
+  handleUserMessage(message, isHintRequest = false) {
     // Get current problem data
     const problemParser = window.problemParser;
     if (!problemParser) {
@@ -517,21 +531,79 @@ class LeetCodeUIManager {
       return;
     }
 
-    // Send chat message to background service
+    // Check if we switched problems and clear history if needed
+    this.checkAndClearHistoryForNewProblem(problemData);
+
+    // Send chat message to background service with conversation history
     chrome.runtime.sendMessage({
       type: 'CHAT_MESSAGE',
       data: {
         message: message,
         problemData: problemData,
+        chatHistory: this.chatHistory,
+        isHintRequest: isHintRequest,
         timestamp: Date.now()
       }
     }, (response) => {
       if (response && response.success) {
-        this.addAssistantMessage(response.data.response || response.data.hint || "I'm here to help! Ask me for hints or explanations.");
+        const responseData = response.data;
+        const assistantResponse = responseData.response || responseData.hint || "I'm here to help! Ask me for hints or explanations.";
+        
+        // Check if this is a scored response
+        if (responseData.understandingScore !== undefined) {
+          const score = responseData.understandingScore;
+          
+          // Add score indicator to the message for high scores
+          let finalResponse = assistantResponse;
+          if (score >= 91) {
+            finalResponse = `🎉 ${assistantResponse}`;
+          } else if (score >= 81) {
+            finalResponse = `⭐ ${assistantResponse}`;
+          }
+          
+          this.addAssistantMessage(finalResponse);
+          
+          // Optional: Log score for debugging (can be removed in production)
+          if (responseData.reasoning) {
+            console.log(`Understanding Score: ${score}/100 - ${responseData.reasoning}`);
+          }
+        } else {
+          this.addAssistantMessage(assistantResponse);
+        }
+        
+        // Add this exchange to chat history
+        this.addToHistory(message, assistantResponse);
       } else {
         this.addAssistantMessage("Sorry, I couldn't process your request right now. " + (response?.error || "Please try again."));
       }
     });
+  }
+
+  // Add exchange to chat history (maintain last 3 pairs)
+  addToHistory(userMessage, assistantResponse) {
+    // Add new pair to history
+    this.chatHistory.push({
+      user: userMessage,
+      assistant: assistantResponse
+    });
+
+    // Keep only last 3 pairs to control token costs
+    if (this.chatHistory.length > this.maxHistoryPairs) {
+      this.chatHistory.shift(); // Remove oldest pair
+    }
+  }
+
+  // Check if we switched problems and clear history if needed
+  checkAndClearHistoryForNewProblem(problemData) {
+    const currentUrl = window.location.href;
+    
+    // If we switched to a different problem, clear chat history
+    if (this.currentProblemUrl && this.currentProblemUrl !== currentUrl) {
+      this.chatHistory = [];
+      this.hintLevel = this.defaultHintLevel; // Reset to default hint level
+    }
+    
+    this.currentProblemUrl = currentUrl;
   }
 
   // Handle quick actions
@@ -546,10 +618,13 @@ class LeetCodeUIManager {
       case 'explain':
         this.explainConcept();
         break;
+      case 'direct-help':
+        this.requestDirectHelp();
+        break;
     }
   }
 
-  // Request a hint with progressive difficulty
+  // Request a hint using the unified chat system
   requestHint() {
     const problemParser = window.problemParser;
     if (!problemParser) {
@@ -563,65 +638,25 @@ class LeetCodeUIManager {
       return;
     }
 
-    // Check if we're on a new problem and reset hint level
-    const currentUrl = window.location.href;
-    if (this.currentProblemUrl !== currentUrl) {
-      this.currentProblemUrl = currentUrl;
-      this.hintLevel = 1;
-    }
-
-    // Get current code if available
-    const currentCode = problemParser.extractCurrentCode();
-
-    // Display progressive user message
+    // Progressive hint request messages
     const hintRequestMessages = [
       "Can you give me a hint for this problem?",
       "I need another hint, I'm still stuck.",
-      "Can you give me a more specific hint?",
+      "Can you give me a more specific hint?", 
       "I really need more help with this problem.",
       "Can you help me understand the approach to solve this?"
     ];
     
-    const messageIndex = Math.min(this.hintLevel - 1, hintRequestMessages.length - 1);
-    this.addUserMessage(hintRequestMessages[messageIndex]);
-
-    // Add hint level indicator for user awareness
-    if (this.hintLevel > 1) {
-      this.addAssistantMessage(`This is hint level ${this.hintLevel}/5 - I'll be more specific now.`);
-    }
-
-    // Send hint request with current level
-    chrome.runtime.sendMessage({
-      type: 'GET_HINT',
-      data: {
-        problemData: problemData,
-        currentCode: currentCode,
-        hintLevel: this.hintLevel,
-        timestamp: Date.now()
-      }
-    }, (response) => {
-      if (response && response.success) {
-        const hintData = response.data;
-        let hintMessage = "";
-        
-        if (hintData.hint) {
-          hintMessage = hintData.hint;
-          if (hintData.followUp) {
-            hintMessage += "\n\n" + hintData.followUp;
-          }
-        } else if (hintData.response) {
-          hintMessage = hintData.response;
-        }
-        
-        this.addAssistantMessage(hintMessage || "Think about the problem step by step. What's the main challenge here?");
-        
-        // Increment hint level for next time (max 5)
-        this.hintLevel = Math.min(this.hintLevel + 1, 5);
-        
-      } else {
-        this.addAssistantMessage("Sorry, I couldn't generate a hint right now. " + (response?.error || "Please try again."));
-      }
-    });
+    // Count previous hint requests in chat history
+    const hintExchanges = this.chatHistory.filter(exchange => 
+      exchange.user.toLowerCase().includes('hint')
+    ).length;
+    
+    const messageIndex = Math.min(hintExchanges, hintRequestMessages.length - 1);
+    const hintMessage = hintRequestMessages[messageIndex];
+    
+    // Send hint request through the unified chat system
+    this.sendChatMessage(hintMessage, true); // true indicates this is a hint request
   }
 
   // Review current code
@@ -639,12 +674,41 @@ class LeetCodeUIManager {
     }
 
     // Extract current code from the editor
-    const currentCode = problemParser.extractCurrentCode();
-    if (!currentCode || currentCode.trim() === '') {
-      this.addAssistantMessage("I couldn't find any code to review. Please make sure you have code written in the editor.");
-      return;
+    let currentCode = problemParser.extractCurrentCode();
+    
+    // If no code found, try to get from clipboard as last resort
+    if (!currentCode || currentCode.trim() === '' || currentCode.length < 50) {
+      this.addAssistantMessage("Trying to access your clipboard for code. Please make sure you've copied your code (Ctrl+A, Ctrl+C).");
+      
+      // Try to read from clipboard
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText()
+          .then(clipboardText => {
+            if (clipboardText && clipboardText.length > 50 && 
+                (clipboardText.includes('function') || clipboardText.includes('class') || 
+                 clipboardText.includes('def ') || clipboardText.includes('return'))) {
+              
+              this.addAssistantMessage("Found code in clipboard! Reviewing...");
+              this.performCodeReview(problemData, clipboardText);
+            } else {
+              this.addAssistantMessage("Please select all your code (Ctrl+A), copy it (Ctrl+C), then try 'Review Code' again.");
+            }
+          })
+          .catch(err => {
+            this.addAssistantMessage("Couldn't access clipboard. Please select all your code (Ctrl+A), copy it (Ctrl+C), then try again.");
+          });
+        return;
+      } else {
+        this.addAssistantMessage("Please select all your code (Ctrl+A), copy it (Ctrl+C), then try 'Review Code' again.");
+        return;
+      }
     }
+    
+    this.performCodeReview(problemData, currentCode);
+  }
 
+  // Perform the actual code review
+  performCodeReview(problemData, currentCode) {
     // Add user message to show what's happening
     this.addUserMessage("Please review my code for this problem.");
 
@@ -661,29 +725,21 @@ class LeetCodeUIManager {
         const reviewData = response.data;
         let reviewMessage = "";
         
-        // Handle plain text response
-        if (reviewData.response && reviewData.type === 'text') {
+        // Handle the natural conversational response
+        if (reviewData.response) {
+          reviewMessage = reviewData.response;
+        } else if (reviewData.type === 'text') {
           reviewMessage = reviewData.response;
         } else {
-          // Handle structured JSON response - keep it concise
+          // Fallback to old structured format if new format isn't available
           if (reviewData.issues && reviewData.issues.length > 0) {
             reviewMessage += "Issues: " + reviewData.issues.join("; ") + "\n";
           }
-          
           if (reviewData.suggestions && reviewData.suggestions.length > 0) {
             reviewMessage += "Suggestions: " + reviewData.suggestions.join("; ") + "\n";
           }
-          
-          if (reviewData.edgeCases && reviewData.edgeCases.length > 0) {
-            reviewMessage += "Edge cases: " + reviewData.edgeCases.join("; ") + "\n";
-          }
-          
           if (reviewData.complexity) {
             reviewMessage += "Complexity: " + reviewData.complexity;
-          }
-          
-          if (reviewData.response) {
-            reviewMessage = reviewData.response; // Prefer the response field if available
           }
         }
         
@@ -696,9 +752,14 @@ class LeetCodeUIManager {
 
   // Explain concept
   explainConcept() {
-    this.addUserMessage("Can you explain the key concepts for this problem?");
-    this.handleUserMessage("Can you explain the key concepts for this problem?");
+    this.sendChatMessage("Can you explain the key concepts for this problem?");
   }
+
+  // Request direct help (bypass Socratic method)
+  requestDirectHelp() {
+    this.sendChatMessage("Please give me direct help with this problem.");
+  }
+
 
   // Cleanup
   cleanup() {

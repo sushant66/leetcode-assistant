@@ -660,7 +660,7 @@ class LeetCodeUIManager {
   }
 
   // Review current code
-  reviewCode() {
+  async reviewCode() {
     const problemParser = window.problemParser;
     if (!problemParser) {
       this.addAssistantMessage("Sorry, I couldn't access the problem parser. Please try again.");
@@ -673,38 +673,21 @@ class LeetCodeUIManager {
       return;
     }
 
-    // Extract current code from the editor
-    let currentCode = problemParser.extractCurrentCode();
-    
-    // If no code found, try to get from clipboard as last resort
-    if (!currentCode || currentCode.trim() === '' || currentCode.length < 50) {
-      this.addAssistantMessage("Trying to access your clipboard for code. Please make sure you've copied your code (Ctrl+A, Ctrl+C).");
+    try {
+      // Extract current code from the editor (now async)
+      const currentCode = await problemParser.extractCurrentCode();
       
-      // Try to read from clipboard
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        navigator.clipboard.readText()
-          .then(clipboardText => {
-            if (clipboardText && clipboardText.length > 50 && 
-                (clipboardText.includes('function') || clipboardText.includes('class') || 
-                 clipboardText.includes('def ') || clipboardText.includes('return'))) {
-              
-              this.addAssistantMessage("Found code in clipboard! Reviewing...");
-              this.performCodeReview(problemData, clipboardText);
-            } else {
-              this.addAssistantMessage("Please select all your code (Ctrl+A), copy it (Ctrl+C), then try 'Review Code' again.");
-            }
-          })
-          .catch(err => {
-            this.addAssistantMessage("Couldn't access clipboard. Please select all your code (Ctrl+A), copy it (Ctrl+C), then try again.");
-          });
-        return;
-      } else {
-        this.addAssistantMessage("Please select all your code (Ctrl+A), copy it (Ctrl+C), then try 'Review Code' again.");
+      // Check if code was found
+      if (!currentCode || currentCode.trim() === '') {
+        this.addAssistantMessage("No code found in the Monaco editor. Please make sure you have code written in the editor.");
         return;
       }
+      
+      this.performCodeReview(problemData, currentCode);
+    } catch (error) {
+      console.error('Error extracting code:', error);
+      this.addAssistantMessage("Failed to extract code from the editor. Please try again.");
     }
-    
-    this.performCodeReview(problemData, currentCode);
   }
 
   // Perform the actual code review

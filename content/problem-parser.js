@@ -266,112 +266,60 @@ class LeetCodeProblemParser {
 
   // Extract current user code from editor
   extractCurrentCode() {
+    console.log('extractCurrentCode called!');
+    
     try {
-      // Try to get code from Monaco Editor's view-lines (current LeetCode approach)
-      const viewLines = document.querySelector('.view-lines[role="presentation"]');
-      if (viewLines) {
-        try {
-          // Extract text from Monaco editor's view lines
-          const lines = viewLines.querySelectorAll('.view-line');
-          if (lines.length > 0) {
-            const codeLines = [];
-            lines.forEach(line => {
-              // Get the text content from each line, excluding line numbers and decorations
-              const spans = line.querySelectorAll('span');
-              let lineText = '';
-              spans.forEach(span => {
-                // Skip Monaco's syntax highlighting containers and get actual text
-                if (span.textContent && !span.classList.contains('mtk')) {
-                  lineText += span.textContent;
-                } else if (span.textContent) {
-                  lineText += span.textContent;
-                }
-              });
-              if (!lineText) {
-                lineText = line.textContent || '';
-              }
-              codeLines.push(lineText);
-            });
-            const code = codeLines.join('\n').trim();
-            if (code && code.length > 10) { // Ensure we have substantial code
-              return code;
+      // Use postMessage to communicate with injected script
+      const extractionId = 'monaco-code-' + Date.now();
+      
+      return new Promise((resolve) => {
+        // Listen for the response
+        const messageHandler = (event) => {
+          if (event.source === window && event.data && event.data.type === 'MONACO_CODE_RESPONSE' && event.data.id === extractionId) {
+            window.removeEventListener('message', messageHandler);
+            const { code, error } = event.data;
+            if (error) {
+              console.log('Monaco extraction error:', error);
+              resolve('');
+            } else {
+              console.log('Successfully extracted code:', code ? code.length : 0, 'characters');
+              resolve(code || '');
             }
           }
-        } catch (e) {
-          // Skip Monaco view-lines extraction
-        }
-      }
-
-      // Try to get code from Monaco Editor textarea (fallback)
-      const monacoEditor = document.querySelector('.monaco-editor textarea');
-      if (monacoEditor && monacoEditor.value) {
-        return monacoEditor.value;
-      }
-
-      // Try getting from Monaco editor's model (if accessible)
-      if (window.monaco && window.monaco.editor) {
-        try {
-          const editors = window.monaco.editor.getEditors();
-          if (editors && editors.length > 0) {
-            const code = editors[0].getValue();
-            if (code && code.trim()) {
-              return code;
-            }
-          }
-        } catch (e) {
-          // Skip Monaco editor model
-        }
-      }
-
-      // Try CodeMirror
-      const codeMirror = document.querySelector('.CodeMirror');
-      if (codeMirror && codeMirror.CodeMirror) {
-        return codeMirror.CodeMirror.getValue();
-      }
-
-      // Try other code editor selectors
-      const codeSelectors = [
-        'textarea[data-mode]',           // Code editor textareas with mode attribute
-        'textarea[autocomplete="off"]', // Common for code editors
-        '.ace_text-input',              // ACE editor
-        '[class*="code-editor"] textarea',
-        '.editor textarea',
-        'textarea[spellcheck="false"]', // Often used for code
-        '.monaco-editor .inputarea'     // Monaco input area
-      ];
-
-      for (const selector of codeSelectors) {
-        try {
-          const element = document.querySelector(selector);
-          if (element && element.value && element.value.trim()) {
-            return element.value;
-          }
-        } catch (e) {
-          // Skip failed selector
-        }
-      }
-
-      // Last resort: try to find any textarea that looks like code
-      const textareas = document.querySelectorAll('textarea');
-      for (const textarea of textareas) {
-        try {
-          if (textarea.value && textarea.value.trim() && 
-              (textarea.value.includes('function') || 
-               textarea.value.includes('class') ||
-               textarea.value.includes('def ') ||
-               textarea.value.includes('public ') ||
-               textarea.value.includes('{') ||
-               textarea.value.includes('return'))) {
-            return textarea.value;
-          }
-        } catch (e) {
-          // Skip textarea heuristic
-        }
-      }
-
-      return '';
+        };
+        
+        window.addEventListener('message', messageHandler);
+        
+        // Create and inject script file
+        const script = document.createElement('script');
+        script.src = chrome.runtime.getURL('content/monaco-extractor.js');
+        script.onload = () => {
+          // Send message to the injected script to extract code
+          window.postMessage({
+            type: 'EXTRACT_MONACO_CODE',
+            id: extractionId
+          }, '*');
+          script.remove();
+        };
+        script.onerror = () => {
+          window.removeEventListener('message', messageHandler);
+          console.log('Failed to load monaco-extractor script');
+          resolve('');
+        };
+        
+        document.head.appendChild(script);
+        
+        // Timeout as fallback
+        setTimeout(() => {
+          window.removeEventListener('message', messageHandler);
+          console.log('Monaco extraction timed out');
+          resolve('');
+        }, 2000);
+      });
+      
     } catch (error) {
-      return '';
+      console.error('Error in code extraction setup:', error);
+      return Promise.resolve('');
     }
   }
 

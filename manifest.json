@@ -54,7 +54,8 @@
       "resources": [
         "ui/assistant-panel.html",
         "ui/assistant-panel.js",
-        "styles/content.css"
+        "styles/content.css",
+        "content/monaco-extractor.js"
       ],
       "matches": ["https://leetcode.com/*"]
     }

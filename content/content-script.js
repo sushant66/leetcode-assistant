@@ -107,9 +107,19 @@ function setupMessageListeners() {
         break;
         
       case 'GET_CURRENT_CODE':
-        const currentCode = problemParser ? problemParser.extractCurrentCode() : '';
-        sendResponse({ success: true, data: currentCode });
-        break;
+        if (problemParser) {
+          problemParser.extractCurrentCode()
+            .then(currentCode => {
+              sendResponse({ success: true, data: currentCode || '' });
+            })
+            .catch(error => {
+              console.error('Error getting current code:', error);
+              sendResponse({ success: false, error: 'Failed to extract code' });
+            });
+        } else {
+          sendResponse({ success: true, data: '' });
+        }
+        return true; // Indicate async response
         
       case 'TOGGLE_ASSISTANT':
         if (uiManager) {
@@ -129,14 +139,16 @@ function setupMessageListeners() {
 }
 
 // Utility functions for debugging and development
-function debugExtension() {
+async function debugExtension() {
+  const currentCode = problemParser ? await problemParser.extractCurrentCode() : null;
+  
   const info = {
     url: window.location.href,
     isProblemPage: isLeetCodeProblemPage(),
     parserInitialized: !!problemParser,
     uiInitialized: !!uiManager,
     currentProblem: problemParser ? problemParser.getCurrentProblem() : null,
-    currentCode: problemParser ? problemParser.extractCurrentCode() : null,
+    currentCode: currentCode,
     panelVisible: uiManager ? uiManager.isPanelVisible : false
   };
   

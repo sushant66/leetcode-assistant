@@ -15,9 +15,7 @@ chrome.runtime.onInstalled.addListener((details) => {
       apiKey: '',
       aiProvider: 'gpt-4-1-mini',
       hintLevel: 1,
-      panelPosition: 'right',
-      autoAnalyze: true,
-      showHints: true
+      panelPosition: 'right'
     });
   }
 });
@@ -28,7 +26,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'ANALYZE_PROBLEM':
       handleProblemAnalysis(message.data, sendResponse);
       return true; // Keep message channel open for async response
-      
       
     case 'REVIEW_CODE':
       handleCodeReview(message.data, sendResponse);
@@ -71,7 +68,6 @@ async function handleProblemAnalysis(problemData, sendResponse) {
     });
   }
 }
-
 
 // Handle code review
 async function handleCodeReview(codeData, sendResponse) {
@@ -157,9 +153,7 @@ async function getSettings() {
       apiKey: '',
       aiProvider: 'gpt-4-1-mini',
       hintLevel: 1,
-      panelPosition: 'right',
-      autoAnalyze: true,
-      showHints: true
+      panelPosition: 'right'
     }, (settings) => {
       resolve(settings);
     });

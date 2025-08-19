@@ -132,8 +132,7 @@ class LeetCodeUIManager {
       toggle.style.color = '#1a1a1a';
     }
 
-    // Trigger problem analysis if not done yet
-    this.triggerProblemAnalysis();
+    // Note: Problem analysis is only triggered on explicit request, not automatically
   }
 
   // Hide the assistant panel
@@ -460,6 +459,9 @@ class LeetCodeUIManager {
     const problemData = problemParser.getCurrentProblem();
     if (!problemData) return;
 
+    // Add user message to show what's happening
+    this.addUserMessage("Analyze the problem");
+
     // Send problem data to background for analysis
     chrome.runtime.sendMessage({
       type: 'ANALYZE_PROBLEM',
@@ -474,13 +476,36 @@ class LeetCodeUIManager {
     const analysisContainer = document.getElementById('problem-analysis');
     if (!analysisContainer) return;
 
-    if (response && response.success) {
-      // Hide the analysis container since we're not displaying any analysis fields
+    if (response && response.success && response.data) {
+      // Hide the analysis container since we're displaying in chat
       analysisContainer.style.display = 'none';
+      
+      // Display analysis results in the chatbox
+      const analysisData = response.data;
+      let analysisMessage = "📊 Problem Analysis\n\n";
+      
+      if (analysisData.category) {
+        analysisMessage += `🏷️ Category:\n${analysisData.category}\n\n`;
+      }
+      
+      if (analysisData.concepts && Array.isArray(analysisData.concepts)) {
+        analysisMessage += `💡 Key Concepts:\n${analysisData.concepts.join(', ')}\n\n`;
+      }
+      
+      if (analysisData.approach) {
+        analysisMessage += `🎯 Approach:\n${analysisData.approach}\n\n`;
+      }
+      
+      if (analysisData.edgeCases && Array.isArray(analysisData.edgeCases)) {
+        analysisMessage += `⚠️ Edge Cases:\n${analysisData.edgeCases.join(', ')}`;
+      }
+      
+      this.addFormattedAssistantMessage(analysisMessage);
     } else {
       analysisContainer.innerHTML = `
         <div class="error">Failed to analyze problem: ${response?.error || 'Unknown error'}</div>
       `;
+      this.addAssistantMessage("❌ Failed to analyze the problem. Please try again.");
     }
   }
 
@@ -503,6 +528,19 @@ class LeetCodeUIManager {
 
     const messageDiv = document.createElement('div');
     messageDiv.className = 'assistant-message';
+    messageDiv.textContent = message;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Add formatted assistant message with line breaks
+  addFormattedAssistantMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'assistant-message';
+    messageDiv.style.whiteSpace = 'pre-line'; // Preserves line breaks
     messageDiv.textContent = message;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;

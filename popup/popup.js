@@ -9,9 +9,7 @@ let currentSettings = {
   apiKey: '',
   aiProvider: 'gpt-4-1-mini',
   hintLevel: 1,
-  panelPosition: 'right',
-  autoAnalyze: true,
-  showHints: true
+  panelPosition: 'right'
 };
 
 // Initialize popup when DOM is loaded
@@ -60,8 +58,6 @@ function cacheElements() {
     
     // Settings elements
     panelPosition: document.getElementById('panel-position'),
-    autoAnalyze: document.getElementById('auto-analyze'),
-    showHints: document.getElementById('show-hints'),
     
     // Footer elements
     saveStatus: document.getElementById('save-status'),
@@ -77,9 +73,7 @@ async function loadSettings() {
       apiKey: '',
       aiProvider: 'gpt-4-1-mini',
       hintLevel: 1,
-      panelPosition: 'right',
-      autoAnalyze: true,
-      showHints: true
+      panelPosition: 'right'
     }, (settings) => {
       currentSettings = settings;
       resolve();
@@ -93,8 +87,6 @@ function updateUIFromSettings() {
   elements.aiProvider.value = currentSettings.aiProvider || 'openai';
   elements.hintLevel.value = currentSettings.hintLevel || 1;
   elements.panelPosition.value = currentSettings.panelPosition || 'right';
-  elements.autoAnalyze.checked = currentSettings.autoAnalyze !== false;
-  elements.showHints.checked = currentSettings.showHints !== false;
   
   // Update provider-specific UI
   updateProviderUI();
@@ -196,8 +188,6 @@ function setupEventListeners() {
   });
   elements.hintLevel.addEventListener('change', saveSettings);
   elements.panelPosition.addEventListener('change', saveSettings);
-  elements.autoAnalyze.addEventListener('change', saveSettings);
-  elements.showHints.addEventListener('change', saveSettings);
   
   // Action button handlers
   elements.toggleAssistant.addEventListener('click', handleToggleAssistant);
@@ -223,9 +213,7 @@ async function saveSettings() {
       apiKey: elements.apiKey.value.trim(),
       aiProvider: elements.aiProvider.value,
       hintLevel: parseInt(elements.hintLevel.value),
-      panelPosition: elements.panelPosition.value,
-      autoAnalyze: elements.autoAnalyze.checked,
-      showHints: elements.showHints.checked
+      panelPosition: elements.panelPosition.value
     };
     
     await chrome.storage.sync.set(newSettings);
@@ -308,25 +296,15 @@ async function handleAnalyzeProblem() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
     
-    // Get current problem
-    const problemResponse = await sendMessageToTab(tab.id, { type: 'GET_CURRENT_PROBLEM' });
+    // Open AI panel and trigger analysis there
+    const response = await sendMessageToTab(tab.id, { type: 'SHOW_ASSISTANT_AND_ANALYZE' });
     
-    if (!problemResponse || !problemResponse.success || !problemResponse.data) {
-      showSaveStatus('No problem detected', 'error');
-      return;
+    if (response && response.success) {
+      showSaveStatus('Analysis requested', 'success');
+      window.close(); // Close popup after triggering
+    } else {
+      showSaveStatus('Failed to open assistant', 'error');
     }
-    
-    // Send to background for analysis
-    chrome.runtime.sendMessage({
-      type: 'ANALYZE_PROBLEM',
-      data: problemResponse.data
-    }, (response) => {
-      if (response && response.success) {
-        showSaveStatus('Problem analyzed', 'success');
-      } else {
-        showSaveStatus('Analysis failed', 'error');
-      }
-    });
     
   } catch (error) {
     showSaveStatus('Analysis failed', 'error');
@@ -344,34 +322,15 @@ async function handleGetHint() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return;
     
-    // Get current problem and code
-    const [problemResponse, codeResponse] = await Promise.all([
-      sendMessageToTab(tab.id, { type: 'GET_CURRENT_PROBLEM' }),
-      sendMessageToTab(tab.id, { type: 'GET_CURRENT_CODE' })
-    ]);
+    // Open AI panel and trigger hint request there
+    const response = await sendMessageToTab(tab.id, { type: 'SHOW_ASSISTANT_AND_HINT' });
     
-    if (!problemResponse || !problemResponse.success || !problemResponse.data) {
-      showSaveStatus('No problem detected', 'error');
-      return;
+    if (response && response.success) {
+      showSaveStatus('Hint requested', 'success');
+      window.close(); // Close popup after triggering
+    } else {
+      showSaveStatus('Failed to open assistant', 'error');
     }
-    
-    const requestData = {
-      problemData: problemResponse.data,
-      currentCode: codeResponse?.data || '',
-      hintLevel: currentSettings.hintLevel
-    };
-    
-    // Send to background for hint generation
-    chrome.runtime.sendMessage({
-      type: 'GET_HINT',
-      data: requestData
-    }, (response) => {
-      if (response && response.success) {
-        showSaveStatus('Hint generated', 'success');
-      } else {
-        showSaveStatus('Hint failed', 'error');
-      }
-    });
     
   } catch (error) {
     showSaveStatus('Hint failed', 'error');

@@ -130,6 +130,30 @@ function setupMessageListeners() {
         }
         break;
         
+      case 'SHOW_ASSISTANT_AND_HINT':
+        if (uiManager) {
+          uiManager.showAssistantPanel();
+          setTimeout(() => {
+            uiManager.requestHint();
+          }, 100); // Small delay to ensure panel is visible
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false, error: 'UI Manager not initialized' });
+        }
+        break;
+        
+      case 'SHOW_ASSISTANT_AND_ANALYZE':
+        if (uiManager) {
+          uiManager.showAssistantPanel();
+          setTimeout(() => {
+            uiManager.triggerProblemAnalysis();
+          }, 100); // Small delay to ensure panel is visible
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false, error: 'UI Manager not initialized' });
+        }
+        break;
+        
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }

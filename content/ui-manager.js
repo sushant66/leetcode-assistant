@@ -396,6 +396,60 @@ class LeetCodeUIManager {
         background: #444;
         border-color: #00d4aa;
       }
+
+      .leetcode-ai-panel .loading-message {
+        margin-bottom: 15px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #2a2a2a;
+        border-left: 3px solid #ffa500;
+      }
+
+      .leetcode-ai-panel .loading-dots {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #ffa500;
+        font-size: 14px;
+      }
+
+      .leetcode-ai-panel .loading-text {
+        color: #e0e0e0;
+        font-style: italic;
+      }
+
+      .leetcode-ai-panel .dots {
+        display: flex;
+        gap: 3px;
+      }
+
+      .leetcode-ai-panel .dots span {
+        width: 4px;
+        height: 4px;
+        background: #ffa500;
+        border-radius: 50%;
+        display: inline-block;
+        animation: loading-dot 1.4s infinite ease-in-out both;
+      }
+
+      .leetcode-ai-panel .dots span:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+
+      .leetcode-ai-panel .dots span:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes loading-dot {
+        0%, 80%, 100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
     `;
     
     if (!document.getElementById('leetcode-ai-styles')) {
@@ -462,11 +516,17 @@ class LeetCodeUIManager {
     // Add user message to show what's happening
     this.addUserMessage("Analyze the problem");
 
+    // Add loading indicator
+    this.addLoadingIndicator();
+
     // Send problem data to background for analysis
     chrome.runtime.sendMessage({
       type: 'ANALYZE_PROBLEM',
       data: problemData
     }, (response) => {
+      // Remove loading indicator
+      this.removeLoadingIndicator();
+      
       this.displayProblemAnalysis(response);
     });
   }
@@ -533,6 +593,36 @@ class LeetCodeUIManager {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
+  // Add loading indicator to chat
+  addLoadingIndicator() {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-message';
+    loadingDiv.id = 'ai-loading-indicator';
+    loadingDiv.innerHTML = `
+      <div class="loading-dots">
+        <div class="loading-text">AI is thinking</div>
+        <div class="dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
+    chatMessages.appendChild(loadingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Remove loading indicator from chat
+  removeLoadingIndicator() {
+    const loadingIndicator = document.getElementById('ai-loading-indicator');
+    if (loadingIndicator) {
+      loadingIndicator.remove();
+    }
+  }
+
   // Add formatted assistant message with line breaks
   addFormattedAssistantMessage(message) {
     const chatMessages = document.getElementById('chat-messages');
@@ -550,6 +640,9 @@ class LeetCodeUIManager {
   sendChatMessage(message, isHintRequest = false) {
     // Add user message to chat
     this.addUserMessage(message);
+    
+    // Add loading indicator
+    this.addLoadingIndicator();
     
     this.handleUserMessage(message, isHintRequest);
   }
@@ -583,6 +676,9 @@ class LeetCodeUIManager {
         timestamp: Date.now()
       }
     }, (response) => {
+      // Remove loading indicator
+      this.removeLoadingIndicator();
+      
       if (response && response.success) {
         const responseData = response.data;
         const assistantResponse = responseData.response || responseData.hint || "I'm here to help! Ask me for hints or explanations.";
@@ -733,6 +829,9 @@ class LeetCodeUIManager {
     // Add user message to show what's happening
     this.addUserMessage("Please review my code for this problem.");
 
+    // Add loading indicator
+    this.addLoadingIndicator();
+
     // Send code review request with actual code
     chrome.runtime.sendMessage({
       type: 'REVIEW_CODE',
@@ -742,6 +841,9 @@ class LeetCodeUIManager {
         timestamp: Date.now()
       }
     }, (response) => {
+      // Remove loading indicator
+      this.removeLoadingIndicator();
+      
       if (response && response.success) {
         const reviewData = response.data;
         let reviewMessage = "";

@@ -1,4 +1,4 @@
-// Main content script for LeetCode AI Assistant
+// Main content script for LeetWhisper
 // Orchestrates problem parsing, UI management, and communication with background script
 
 // Global instances
@@ -24,7 +24,7 @@ function initializeExtension() {
     setupExtension();
     
   } catch (error) {
-    console.error('Failed to initialize LeetCode AI Assistant:', error);
+    console.error('Failed to initialize LeetWhisper:', error);
   }
 }
 
@@ -176,7 +176,7 @@ async function debugExtension() {
     panelVisible: uiManager ? uiManager.isPanelVisible : false
   };
   
-  console.log('=== LeetCode AI Assistant Debug Info ===', info);
+  console.log('=== LeetWhisper Debug Info ===', info);
   return info;
 }
 

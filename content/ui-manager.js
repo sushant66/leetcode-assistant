@@ -132,7 +132,8 @@ class LeetCodeUIManager {
       toggle.style.color = '#1a1a1a';
     }
 
-    // Note: Problem analysis is only triggered on explicit request, not automatically
+    // Update problem context when panel is shown
+    this.updateProblemContext();
   }
 
   // Hide the assistant panel
@@ -167,10 +168,10 @@ class LeetCodeUIManager {
     const position = this.settings.panelPosition;
     panel.style.cssText = `
       position: fixed !important;
-      top: 80px !important;
-      ${position}: 20px !important;
+      top: 10px !important;
+      ${position}: 10px !important;
       width: ${this.settings.panelWidth} !important;
-      height: calc(100vh - 120px) !important;
+      height: calc(100vh - 20px) !important;
       background: #1a1a1a !important;
       border: 1px solid #333 !important;
       border-radius: 12px !important;
@@ -181,32 +182,114 @@ class LeetCodeUIManager {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     `;
 
-    // Create panel content
+    // Create modern panel content with SaaS-style interface
     panel.innerHTML = `
-      <div class="panel-header">
-        <h3>🤖 AI Assistant</h3>
-        <button class="close-btn">×</button>
-      </div>
-      <div class="panel-content">
-        <div class="problem-analysis" id="problem-analysis">
-          <div class="loading">Analyzing problem...</div>
+      <div class="modern-panel-header">
+        <div class="header-content">
+          <div class="ai-avatar">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="currentColor"/>
+              <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.7"/>
+            </svg>
+          </div>
+          <div class="header-text">
+            <h3 class="assistant-title">LeetWhisper</h3>
+            <span class="assistant-status">Ready to help</span>
+          </div>
         </div>
-        <div class="chat-container" id="chat-container">
-          <div class="chat-messages" id="chat-messages">
-            <div class="assistant-message">
-              Hi! I'm here to help you solve this LeetCode problem. I'll provide hints and guidance without giving away the solution. How can I assist you?
+        <div class="header-actions">
+          <button class="close-btn" title="Close">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="modern-panel-content">
+        <div class="problem-context" id="problem-context">
+          <div class="context-header">
+            <span class="context-label">Current Problem</span>
+            <div class="problem-difficulty-badge" id="problem-diff-badge">Medium</div>
+          </div>
+          <div class="context-title" id="context-problem-title">Loading problem...</div>
+        </div>
+        
+        <div class="chat-interface" id="chat-interface">
+          <div class="chat-messages-container" id="chat-messages">
+            <div class="welcome-message">
+              <div class="message-avatar">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+              </div>
+              <div class="message-content">
+                <div class="message-text">
+                  Hello! I'm your AI coding assistant. I'm here to guide you through this LeetCode problem step by step.
+                  <br><br>
+                  I can help you with:
+                  <ul>
+                    <li>Understanding the problem approach</li>
+                    <li>Analyzing your code</li>
+                    <li>Explaining algorithms and concepts</li>
+                    <li>Providing progressive hints</li>
+                  </ul>
+                  What would you like to start with?
+                </div>
+                <div class="message-time">Just now</div>
+              </div>
             </div>
           </div>
-          <div class="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Ask for a hint or explanation..." />
-            <button id="send-btn">Send</button>
+          
+          <div class="quick-actions-grid">
+            <button class="modern-action-btn" data-action="hint">
+              <div class="action-icon">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+              </div>
+              <span>Smart Hint</span>
+            </button>
+            
+            <button class="modern-action-btn" data-action="review">
+              <div class="action-icon">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <span>Review Code</span>
+            </button>
+            
+            <button class="modern-action-btn" data-action="explain">
+              <div class="action-icon">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span>Explain</span>
+            </button>
+            
+            <button class="modern-action-btn" data-action="analyze">
+              <div class="action-icon">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                  <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6.586l2.707 2.707A1 1 0 0118 17v-3.586l-2-2V5a4 4 0 00-4-4H8a4 4 0 00-4 4v9a4 4 0 004 4h8a4 4 0 004-4v-3.86l-2-2V14a2 2 0 01-2 2H8a2 2 0 01-2-2V5z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span>Analyze</span>
+            </button>
           </div>
-        </div>
-        <div class="quick-actions">
-          <button class="action-btn" data-action="hint">💡 Get Hint</button>
-          <button class="action-btn" data-action="review">🔍 Review Code</button>
-          <button class="action-btn" data-action="explain">📚 Explain Concept</button>
-          <button class="action-btn" data-action="direct-help">🎯 Direct Help</button>
+          
+          <div class="chat-input-section">
+            <div class="input-container">
+              <input type="text" id="chat-input" placeholder="Ask me anything about this problem..." />
+              <button id="send-btn" class="send-button">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -226,228 +309,501 @@ class LeetCodeUIManager {
   addPanelStyles(panel) {
     const style = document.createElement('style');
     style.textContent = `
-      .leetcode-ai-panel .panel-header {
-        background: #2a2a2a;
-        padding: 15px 20px;
-        border-bottom: 1px solid #333;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      /* Modern SaaS UI Variables */
+      :root {
+        --panel-primary: #6366f1;
+        --panel-primary-hover: #4f46e5;
+        --panel-success: #10b981;
+        --panel-warning: #f59e0b;
+        --panel-error: #ef4444;
+        --panel-bg: #0f172a;
+        --panel-card: #1e293b;
+        --panel-card-hover: #334155;
+        --panel-input: #334155;
+        --panel-border: #334155;
+        --panel-text-primary: #f8fafc;
+        --panel-text-secondary: #cbd5e1;
+        --panel-text-muted: #94a3b8;
+        --panel-radius-sm: 4px;
+        --panel-radius: 8px;
+        --panel-radius-md: 12px;
+        --panel-radius-lg: 16px;
+        --panel-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --panel-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --panel-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --panel-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       }
       
-      .leetcode-ai-panel .panel-header h3 {
-        margin: 0;
-        color: #00d4aa;
-        font-size: 16px;
-        font-weight: 600;
+      /* Base Panel Styles */
+      .leetcode-ai-panel {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        line-height: 1.5 !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        border-radius: var(--panel-radius-lg) !important;
+        overflow: hidden !important;
+        border: 1px solid var(--panel-border) !important;
+        box-shadow: var(--panel-shadow-lg) !important;
+      }
+      
+      /* Modern Panel Header */
+      .leetcode-ai-panel .modern-panel-header {
+        background: var(--panel-card) !important;
+        padding: 16px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-bottom: 1px solid var(--panel-border) !important;
+      }
+      
+      .leetcode-ai-panel .header-content {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      
+      .leetcode-ai-panel .ai-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-hover) 100%) !important;
+        border-radius: var(--panel-radius) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: white !important;
+        flex-shrink: 0 !important;
+      }
+      
+      .leetcode-ai-panel .ai-avatar svg {
+        width: 20px !important;
+        height: 20px !important;
+      }
+      
+      .leetcode-ai-panel .header-text {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      
+      .leetcode-ai-panel .assistant-title {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: var(--panel-text-primary) !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+      }
+      
+      .leetcode-ai-panel .assistant-status {
+        font-size: 12px !important;
+        color: var(--panel-text-muted) !important;
+      }
+      
+      .leetcode-ai-panel .header-actions {
+        display: flex !important;
+        gap: 8px !important;
       }
       
       .leetcode-ai-panel .close-btn {
-        background: none;
-        border: none;
-        color: #999;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 0;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background: transparent !important;
+        border: none !important;
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: var(--panel-radius-sm) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: var(--panel-text-muted) !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
       }
       
       .leetcode-ai-panel .close-btn:hover {
-        color: #fff;
-        background: #333;
-        border-radius: 4px;
+        background: var(--panel-card-hover) !important;
+        color: var(--panel-text-primary) !important;
       }
       
-      .leetcode-ai-panel .panel-content {
-        height: calc(100% - 60px);
-        display: flex;
-        flex-direction: column;
+      .leetcode-ai-panel .close-btn svg {
+        width: 16px !important;
+        height: 16px !important;
       }
       
-      .leetcode-ai-panel .problem-analysis {
-        padding: 15px;
-        border-bottom: 1px solid #333;
-        background: #252525;
-        display: none;
+      /* Modern Panel Content */
+      .leetcode-ai-panel .modern-panel-content {
+        display: flex !important;
+        flex-direction: column !important;
+        height: calc(100% - 68px) !important;
+        background: var(--panel-bg) !important;
       }
       
-      .leetcode-ai-panel .loading {
-        color: #999;
-        font-style: italic;
+      /* Problem Context */
+      .leetcode-ai-panel .problem-context {
+        padding: 16px !important;
+        border-bottom: 1px solid var(--panel-border) !important;
+        background: var(--panel-card) !important;
       }
       
-      .leetcode-ai-panel .chat-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
+      .leetcode-ai-panel .context-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 8px !important;
       }
       
-      .leetcode-ai-panel .chat-messages {
-        flex: 1;
-        padding: 15px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        min-height: 0;
-        max-height: none;
-        scrollbar-width: thin;
-        scrollbar-color: #444 #1a1a1a;
+      .leetcode-ai-panel .context-label {
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        color: var(--panel-text-muted) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
       }
       
-      .leetcode-ai-panel .chat-messages::-webkit-scrollbar {
-        width: 6px;
+      .leetcode-ai-panel .problem-difficulty-badge {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: white !important;
+        background: var(--panel-warning) !important;
+        padding: 2px 8px !important;
+        border-radius: 12px !important;
+        text-transform: uppercase !important;
       }
       
-      .leetcode-ai-panel .chat-messages::-webkit-scrollbar-track {
-        background: #1a1a1a;
+      .leetcode-ai-panel .context-title {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: var(--panel-text-primary) !important;
+        word-break: break-word !important;
       }
       
-      .leetcode-ai-panel .chat-messages::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 3px;
+      /* Chat Interface */
+      .leetcode-ai-panel .chat-interface {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        min-height: 0 !important;
       }
       
-      .leetcode-ai-panel .chat-messages::-webkit-scrollbar-thumb:hover {
-        background: #555;
+      .leetcode-ai-panel .chat-messages-container {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding: 16px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: var(--panel-border) transparent !important;
       }
       
-      .leetcode-ai-panel .assistant-message,
+      .leetcode-ai-panel .chat-messages-container::-webkit-scrollbar {
+        width: 6px !important;
+      }
+      
+      .leetcode-ai-panel .chat-messages-container::-webkit-scrollbar-track {
+        background: transparent !important;
+      }
+      
+      .leetcode-ai-panel .chat-messages-container::-webkit-scrollbar-thumb {
+        background-color: var(--panel-border) !important;
+        border-radius: 20px !important;
+      }
+      
+      /* Welcome Message */
+      .leetcode-ai-panel .welcome-message {
+        display: flex !important;
+        gap: 12px !important;
+        animation: fadeInUp 0.5s ease-out !important;
+      }
+      
+      .leetcode-ai-panel .message-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        background: var(--panel-primary) !important;
+        border-radius: var(--panel-radius) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: white !important;
+        flex-shrink: 0 !important;
+      }
+      
+      .leetcode-ai-panel .message-avatar svg {
+        width: 16px !important;
+        height: 16px !important;
+      }
+      
+      .leetcode-ai-panel .message-content {
+        flex: 1 !important;
+        background: var(--panel-card) !important;
+        border-radius: var(--panel-radius-lg) !important;
+        padding: 16px !important;
+        position: relative !important;
+      }
+      
+      .leetcode-ai-panel .message-content::before {
+        content: '' !important;
+        position: absolute !important;
+        left: -6px !important;
+        top: 14px !important;
+        width: 12px !important;
+        height: 12px !important;
+        background: var(--panel-card) !important;
+        transform: rotate(45deg) !important;
+      }
+      
+      .leetcode-ai-panel .message-text {
+        color: var(--panel-text-primary) !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+      }
+      
+      .leetcode-ai-panel .message-text ul {
+        margin-top: 8px !important;
+        margin-bottom: 8px !important;
+        padding-left: 24px !important;
+      }
+      
+      .leetcode-ai-panel .message-text li {
+        margin-bottom: 4px !important;
+      }
+      
+      /* Inline code styling */
+      .leetcode-ai-panel .message-text code.inline-code {
+        background: rgba(99, 102, 241, 0.1) !important;
+        color: #a855f7 !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        border: 1px solid rgba(99, 102, 241, 0.2) !important;
+      }
+      
+      /* Code block styling */
+      .leetcode-ai-panel .message-text pre.code-block {
+        background: #1a1a1a !important;
+        border: 1px solid var(--panel-border) !important;
+        border-radius: var(--panel-radius) !important;
+        padding: 12px !important;
+        margin: 8px 0 !important;
+        overflow-x: auto !important;
+        font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+      }
+      
+      .leetcode-ai-panel .message-text pre.code-block code {
+        background: transparent !important;
+        color: #e2e8f0 !important;
+        padding: 0 !important;
+        border: none !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+      }
+      
+      .leetcode-ai-panel .message-time {
+        font-size: 11px !important;
+        color: var(--panel-text-muted) !important;
+        margin-top: 8px !important;
+      }
+      
+      /* Message Bubbles */
       .leetcode-ai-panel .user-message {
-        margin-bottom: 15px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        line-height: 1.4;
-        font-size: 14px;
+        align-self: flex-end !important;
+        background: var(--panel-primary) !important;
+        color: white !important;
+        border-radius: var(--panel-radius-lg) !important;
+        border-bottom-right-radius: 4px !important;
+        padding: 12px 16px !important;
+        max-width: 85% !important;
+        margin-left: auto !important;
+        box-shadow: var(--panel-shadow-sm) !important;
+        animation: fadeInRight 0.3s ease-out !important;
       }
       
       .leetcode-ai-panel .assistant-message {
-        background: #2a2a2a;
-        color: #e0e0e0;
-        border-left: 3px solid #00d4aa;
+        display: flex !important;
+        gap: 12px !important;
+        animation: fadeInLeft 0.3s ease-out !important;
       }
       
-      .leetcode-ai-panel .user-message {
-        background: #1e3a5f;
-        color: #b3d9ff;
-        margin-left: 20px;
+      /* Compact Quick Actions Grid */
+      .leetcode-ai-panel .quick-actions-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+        padding: 8px 12px !important;
+        border-top: 1px solid var(--panel-border) !important;
+        background: var(--panel-card) !important;
       }
       
-      .leetcode-ai-panel .chat-input-container {
-        padding: 15px;
-        border-top: 1px solid #333;
-        display: flex;
-        gap: 10px;
+      .leetcode-ai-panel .modern-action-btn {
+        background: var(--panel-bg) !important;
+        border: 1px solid var(--panel-border) !important;
+        border-radius: var(--panel-radius) !important;
+        padding: 6px 4px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 3px !important;
+        transition: all 0.2s ease !important;
+        cursor: pointer !important;
+        min-height: 50px !important;
+      }
+      
+      .leetcode-ai-panel .modern-action-btn:hover {
+        background: var(--panel-card-hover) !important;
+        border-color: var(--panel-primary) !important;
+        transform: translateY(-1px) !important;
+      }
+      
+      .leetcode-ai-panel .action-icon {
+        width: 16px !important;
+        height: 16px !important;
+        color: var(--panel-primary) !important;
+        flex-shrink: 0 !important;
+      }
+      
+      .leetcode-ai-panel .modern-action-btn span {
+        font-size: 10px !important;
+        font-weight: 500 !important;
+        color: var(--panel-text-secondary) !important;
+        text-align: center !important;
+        line-height: 1.2 !important;
+      }
+      
+      /* Chat Input Section */
+      .leetcode-ai-panel .chat-input-section {
+        padding: 16px !important;
+        border-top: 1px solid var(--panel-border) !important;
+      }
+      
+      .leetcode-ai-panel .input-container {
+        display: flex !important;
+        gap: 8px !important;
       }
       
       .leetcode-ai-panel #chat-input {
-        flex: 1;
-        background: #2a2a2a;
-        border: 1px solid #444;
-        border-radius: 6px;
-        padding: 8px 12px;
-        color: white;
-        font-size: 14px;
+        flex: 1 !important;
+        background: var(--panel-input) !important;
+        border: 1px solid var(--panel-border) !important;
+        border-radius: var(--panel-radius) !important;
+        padding: 10px 12px !important;
+        color: var(--panel-text-primary) !important;
+        font-size: 14px !important;
+        transition: all 0.2s ease !important;
       }
       
       .leetcode-ai-panel #chat-input:focus {
-        outline: none;
-        border-color: #00d4aa;
+        outline: none !important;
+        border-color: var(--panel-primary) !important;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
       }
       
-      .leetcode-ai-panel #send-btn {
-        background: #00d4aa;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 16px;
-        color: #1a1a1a;
-        font-weight: 500;
-        cursor: pointer;
-        font-size: 14px;
+      .leetcode-ai-panel .send-button {
+        background: var(--panel-primary) !important;
+        border: none !important;
+        border-radius: var(--panel-radius) !important;
+        width: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: white !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
       }
       
-      .leetcode-ai-panel #send-btn:hover {
-        background: #00b894;
+      .leetcode-ai-panel .send-button:hover {
+        background: var(--panel-primary-hover) !important;
+        transform: translateY(-1px) !important;
       }
       
-      .leetcode-ai-panel .quick-actions {
-        padding: 15px;
-        border-top: 1px solid #333;
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+      .leetcode-ai-panel .send-button svg {
+        width: 16px !important;
+        height: 16px !important;
       }
       
-      .leetcode-ai-panel .action-btn {
-        background: #333;
-        border: 1px solid #444;
-        border-radius: 6px;
-        padding: 6px 10px;
-        color: #e0e0e0;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      
-      .leetcode-ai-panel .action-btn:hover {
-        background: #444;
-        border-color: #00d4aa;
-      }
-
+      /* Loading Indicator */
       .leetcode-ai-panel .loading-message {
-        margin-bottom: 15px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        background: #2a2a2a;
-        border-left: 3px solid #ffa500;
+        display: flex !important;
+        gap: 12px !important;
+        animation: fadeInLeft 0.3s ease-out !important;
       }
-
+      
       .leetcode-ai-panel .loading-dots {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #ffa500;
-        font-size: 14px;
+        margin-left: 36px !important;
+        background: var(--panel-card) !important;
+        border-radius: var(--panel-radius-lg) !important;
+        padding: 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
       }
-
+      
       .leetcode-ai-panel .loading-text {
-        color: #e0e0e0;
-        font-style: italic;
+        color: var(--panel-text-secondary) !important;
+        font-weight: 500 !important;
       }
-
+      
       .leetcode-ai-panel .dots {
-        display: flex;
-        gap: 3px;
+        display: flex !important;
+        gap: 4px !important;
       }
-
+      
       .leetcode-ai-panel .dots span {
-        width: 4px;
-        height: 4px;
-        background: #ffa500;
-        border-radius: 50%;
-        display: inline-block;
-        animation: loading-dot 1.4s infinite ease-in-out both;
+        width: 8px !important;
+        height: 8px !important;
+        background: var(--panel-primary) !important;
+        border-radius: 50% !important;
+        animation: bounce 1.4s infinite ease-in-out both !important;
       }
-
+      
       .leetcode-ai-panel .dots span:nth-child(1) {
-        animation-delay: -0.32s;
+        animation-delay: -0.32s !important;
       }
-
+      
       .leetcode-ai-panel .dots span:nth-child(2) {
-        animation-delay: -0.16s;
+        animation-delay: -0.16s !important;
       }
-
-      @keyframes loading-dot {
+      
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes fadeInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      @keyframes fadeInRight {
+        from {
+          opacity: 0;
+          transform: translateX(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      @keyframes bounce {
         0%, 80%, 100% {
-          transform: scale(0.8);
-          opacity: 0.5;
+          transform: scale(0);
         }
         40% {
           transform: scale(1);
-          opacity: 1;
         }
       }
     `;
@@ -485,8 +841,8 @@ class LeetCodeUIManager {
       }
     });
 
-    // Quick action buttons
-    const actionBtns = panel.querySelectorAll('.action-btn');
+    // Modern action buttons
+    const actionBtns = panel.querySelectorAll('.modern-action-btn');
     actionBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const action = btn.dataset.action;
@@ -503,6 +859,48 @@ class LeetCodeUIManager {
         this.hideAssistantPanel();
       }
     });
+  }
+
+  // Update problem context in the panel
+  updateProblemContext() {
+    const problemParser = window.problemParser;
+    if (!problemParser) {
+      return;
+    }
+
+    const problemData = problemParser.getCurrentProblem();
+    if (!problemData) {
+      return;
+    }
+
+    // Update problem title
+    const titleElement = document.getElementById('context-problem-title');
+    if (titleElement) {
+      titleElement.textContent = problemData.title || 'Unknown Problem';
+    }
+
+    // Update difficulty badge
+    const difficultyBadge = document.getElementById('problem-diff-badge');
+    if (difficultyBadge && problemData.difficulty) {
+      difficultyBadge.textContent = problemData.difficulty.toUpperCase();
+      
+      // Update difficulty badge color
+      difficultyBadge.style.background = this.getDifficultyColor(problemData.difficulty);
+    }
+  }
+
+  // Get color for difficulty badge
+  getDifficultyColor(difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return '#10b981'; // green
+      case 'medium':
+        return '#f59e0b'; // orange
+      case 'hard':
+        return '#ef4444'; // red
+      default:
+        return '#f59e0b'; // default orange
+    }
   }
 
   // Trigger problem analysis
@@ -533,13 +931,7 @@ class LeetCodeUIManager {
 
   // Display problem analysis results
   displayProblemAnalysis(response) {
-    const analysisContainer = document.getElementById('problem-analysis');
-    if (!analysisContainer) return;
-
     if (response && response.success && response.data) {
-      // Hide the analysis container since we're displaying in chat
-      analysisContainer.style.display = 'none';
-      
       // Display analysis results in the chatbox
       const analysisData = response.data;
       let analysisMessage = "📊 Problem Analysis\n\n";
@@ -560,12 +952,9 @@ class LeetCodeUIManager {
         analysisMessage += `⚠️ Edge Cases:\n${analysisData.edgeCases.join(', ')}`;
       }
       
-      this.addFormattedAssistantMessage(analysisMessage);
+      this.addAssistantMessage(analysisMessage);
     } else {
-      analysisContainer.innerHTML = `
-        <div class="error">Failed to analyze problem: ${response?.error || 'Unknown error'}</div>
-      `;
-      this.addAssistantMessage("❌ Failed to analyze the problem. Please try again.");
+      this.addAssistantMessage(`❌ Failed to analyze the problem: ${response?.error || 'Unknown error'}. Please try again.`);
     }
   }
 
@@ -588,7 +977,17 @@ class LeetCodeUIManager {
 
     const messageDiv = document.createElement('div');
     messageDiv.className = 'assistant-message';
-    messageDiv.textContent = message;
+    messageDiv.innerHTML = `
+      <div class="message-avatar">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+        </svg>
+      </div>
+      <div class="message-content">
+        <div class="message-text">${this.formatMarkdown(message)}</div>
+        <div class="message-time">Just now</div>
+      </div>
+    `;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
@@ -752,6 +1151,9 @@ class LeetCodeUIManager {
       case 'explain':
         this.explainConcept();
         break;
+      case 'analyze':
+        this.triggerProblemAnalysis();
+        break;
       case 'direct-help':
         this.requestDirectHelp();
         break;
@@ -883,6 +1285,34 @@ class LeetCodeUIManager {
     this.sendChatMessage("Please give me direct help with this problem.");
   }
 
+  // Format markdown-style code in message text
+  formatMarkdown(text) {
+    // First escape HTML to prevent XSS, but preserve backticks for processing
+    let formatted = this.escapeHtml(text);
+    
+    // Convert line breaks to HTML breaks
+    formatted = formatted.replace(/\n/g, '<br>');
+    
+    // Convert inline code (single backticks) to styled spans
+    formatted = formatted.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+    
+    // Convert code blocks (triple backticks) to styled pre blocks
+    formatted = formatted.replace(/```([\s\S]*?)```/g, '<pre class="code-block"><code>$1</code></pre>');
+    
+    return formatted;
+  }
+
+  // Escape HTML to prevent XSS
+  escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
 
   // Cleanup
   cleanup() {

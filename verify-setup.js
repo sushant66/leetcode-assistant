@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Verification script for LeetCode AI Assistant Chrome Extension
+// Verification script for LeetWhisper Chrome Extension
 // Run this script to verify all required files are in place
 
 const fs = require('fs');
@@ -10,7 +10,7 @@ function log(message) {
   console.log(message);
 }
 
-log('🔍 Verifying LeetCode AI Assistant Chrome Extension Setup...\n');
+log('🔍 Verifying LeetWhisper Chrome Extension Setup...\n');
 
 // Required files and directories
 const requiredFiles = [

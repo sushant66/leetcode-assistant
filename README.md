@@ -1,4 +1,4 @@
-# LeetCode AI Assistant
+# LeetWhisper
 
 A Chrome extension that provides AI-powered assistance for LeetCode problem solving with a guided learning approach, similar to leeco.ai.
 
@@ -63,7 +63,7 @@ A Chrome extension that provides AI-powered assistance for LeetCode problem solv
 - Problem switching detection with automatic history reset
 - Token optimization and cost management
 
-### 🎨 Phase 4: Polish (In Progress)
+### 🎨 Phase 4: Polish (Completed)
 - Enhanced UI/UX with modern styling
 - Real-time loading indicators and animations
 - Comprehensive error handling with user-friendly messages

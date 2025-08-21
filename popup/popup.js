@@ -1,4 +1,4 @@
-// Popup script for LeetCode AI Assistant
+// Popup script for LeetWhisper
 // Handles settings, status display, and quick actions
 
 // DOM elements
@@ -51,18 +51,8 @@ function cacheElements() {
     aiProvider: document.getElementById('ai-provider'),
     hintLevel: document.getElementById('hint-level'),
     
-    // Action buttons
-    toggleAssistant: document.getElementById('toggle-assistant'),
-    analyzeProblem: document.getElementById('analyze-problem'),
-    getHint: document.getElementById('get-hint'),
-    
     // Settings elements
-    panelPosition: document.getElementById('panel-position'),
-    
-    // Footer elements
-    saveStatus: document.getElementById('save-status'),
-    helpLink: document.getElementById('help-link'),
-    feedbackLink: document.getElementById('feedback-link')
+    panelPosition: document.getElementById('panel-position')
   };
 }
 
@@ -107,7 +97,6 @@ async function checkExtensionStatus() {
     if (!tab.url.includes('leetcode.com')) {
       updateStatus('Not on LeetCode', 'inactive');
       updateProblemStatus('Navigate to a LeetCode problem');
-      disableActions(true);
       return;
     }
     
@@ -115,7 +104,6 @@ async function checkExtensionStatus() {
     if (!tab.url.includes('/problems/')) {
       updateStatus('Connected', 'connected');
       updateProblemStatus('Navigate to a problem page');
-      disableActions(true);
       return;
     }
     
@@ -126,16 +114,13 @@ async function checkExtensionStatus() {
       if (response && response.success && response.data) {
         updateStatus('Active', 'connected');
         updateProblemStatus(response.data.title || 'Problem detected');
-        disableActions(false);
       } else {
         updateStatus('Loading...', 'loading');
         updateProblemStatus('Problem loading...');
-        disableActions(true);
       }
     } catch (error) {
       updateStatus('Loading...', 'loading');
       updateProblemStatus('Extension loading...');
-      disableActions(true);
     }
     
   } catch (error) {
@@ -168,13 +153,6 @@ function updateProblemStatus(text) {
   elements.currentProblem.textContent = text;
 }
 
-// Enable/disable action buttons
-function disableActions(disabled) {
-  elements.toggleAssistant.disabled = disabled;
-  elements.analyzeProblem.disabled = disabled;
-  elements.getHint.disabled = disabled;
-}
-
 // Setup event listeners
 function setupEventListeners() {
   // API key visibility toggle
@@ -188,15 +166,6 @@ function setupEventListeners() {
   });
   elements.hintLevel.addEventListener('change', saveSettings);
   elements.panelPosition.addEventListener('change', saveSettings);
-  
-  // Action button handlers
-  elements.toggleAssistant.addEventListener('click', handleToggleAssistant);
-  elements.analyzeProblem.addEventListener('click', handleAnalyzeProblem);
-  elements.getHint.addEventListener('click', handleGetHint);
-  
-  // Footer link handlers
-  elements.helpLink.addEventListener('click', handleHelpLink);
-  elements.feedbackLink.addEventListener('click', handleFeedbackLink);
 }
 
 // Toggle API key visibility
@@ -229,13 +198,43 @@ async function saveSettings() {
 
 // Show save status message
 function showSaveStatus(message, type) {
-  elements.saveStatus.textContent = message;
-  elements.saveStatus.className = `save-status ${type}`;
+  // Create a temporary notification
+  const notification = document.createElement('div');
+  notification.textContent = message;
+  notification.className = `temp-notification ${type}`;
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    ${type === 'success' ? 'background: #10b981; color: white;' : 'background: #ef4444; color: white;'}
+  `;
   
-  // Clear message after 3 seconds
+  // Add animation styles if not already present
+  if (!document.getElementById('temp-notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'temp-notification-styles';
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  document.body.appendChild(notification);
+  
+  // Remove notification after 3 seconds
   setTimeout(() => {
-    elements.saveStatus.textContent = '';
-    elements.saveStatus.className = 'save-status';
+    if (notification.parentNode) {
+      notification.remove();
+    }
   }, 3000);
 }
 
@@ -266,90 +265,6 @@ function updateProviderUI() {
   }
 }
 
-// Handle toggle assistant button
-async function handleToggleAssistant() {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return;
-    
-    const response = await sendMessageToTab(tab.id, { type: 'TOGGLE_ASSISTANT' });
-    
-    if (response && response.success) {
-      showSaveStatus('Assistant toggled', 'success');
-    } else {
-      showSaveStatus('Toggle failed', 'error');
-    }
-    
-  } catch (error) {
-    showSaveStatus('Toggle failed', 'error');
-  }
-}
-
-// Handle analyze problem button
-async function handleAnalyzeProblem() {
-  try {
-    if (!currentSettings.apiKey) {
-      showSaveStatus('Please set API key first', 'error');
-      return;
-    }
-    
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return;
-    
-    // Open AI panel and trigger analysis there
-    const response = await sendMessageToTab(tab.id, { type: 'SHOW_ASSISTANT_AND_ANALYZE' });
-    
-    if (response && response.success) {
-      showSaveStatus('Analysis requested', 'success');
-      window.close(); // Close popup after triggering
-    } else {
-      showSaveStatus('Failed to open assistant', 'error');
-    }
-    
-  } catch (error) {
-    showSaveStatus('Analysis failed', 'error');
-  }
-}
-
-// Handle get hint button
-async function handleGetHint() {
-  try {
-    if (!currentSettings.apiKey) {
-      showSaveStatus('Please set API key first', 'error');
-      return;
-    }
-    
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return;
-    
-    // Open AI panel and trigger hint request there
-    const response = await sendMessageToTab(tab.id, { type: 'SHOW_ASSISTANT_AND_HINT' });
-    
-    if (response && response.success) {
-      showSaveStatus('Hint requested', 'success');
-      window.close(); // Close popup after triggering
-    } else {
-      showSaveStatus('Failed to open assistant', 'error');
-    }
-    
-  } catch (error) {
-    showSaveStatus('Hint failed', 'error');
-  }
-}
-
-// Handle help link
-function handleHelpLink() {
-  chrome.tabs.create({
-    url: 'https://github.com/your-username/leetcode-assistant#readme'
-  });
-}
-
-// Handle feedback link
-function handleFeedbackLink() {
-  chrome.tabs.create({
-    url: 'https://github.com/your-username/leetcode-assistant/issues'
-  });
-}
 
 // Utility function for debouncing
 function debounce(func, wait) {

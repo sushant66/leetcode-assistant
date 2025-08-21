@@ -1,175 +1,411 @@
-/* Content styles for LeetCode AI Assistant integration */
+/* Modern SaaS UI Content Styles for LeetWhisper Assistant */
+
+/* Reusable CSS Variables */
+:root {
+  /* Color Palette */
+  --cw-primary: #6366f1;
+  --cw-primary-hover: #4f46e5;
+  --cw-secondary: #10b981;
+  --cw-success: #10b981;
+  --cw-warning: #f59e0b;
+  --cw-error: #ef4444;
+  
+  /* Neutral Colors */
+  --cw-bg-primary: #0f172a;
+  --cw-bg-secondary: #1e293b;
+  --cw-bg-tertiary: #334155;
+  
+  /* Text Colors */
+  --cw-text-primary: #f8fafc;
+  --cw-text-secondary: #cbd5e1;
+  
+  /* Borders & Shadows */
+  --cw-border: #334155;
+  --cw-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --cw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --cw-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --cw-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Spacing */
+  --cw-space-xs: 4px;
+  --cw-space-sm: 8px;
+  --cw-space-md: 12px;
+  --cw-space-lg: 16px;
+  --cw-space-xl: 20px;
+  
+  /* Radius */
+  --cw-radius-sm: 4px;
+  --cw-radius: 8px;
+  --cw-radius-md: 12px;
+  --cw-radius-lg: 16px;
+  --cw-radius-full: 9999px;
+}
 
 /* Ensure our elements don't interfere with LeetCode's styles */
 .leetcode-ai-toggle,
 .leetcode-ai-panel,
 .leetcode-ai-panel * {
   box-sizing: border-box !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Toggle button styles */
+/* Modern Toggle Button Styles */
 .leetcode-ai-toggle {
   position: fixed !important;
-  top: 20px !important;
-  right: 20px !important;
+  top: var(--cw-space-xl) !important;
+  right: var(--cw-space-xl) !important;
   z-index: 10000 !important;
-  background: #1a1a1a !important;
+  background: linear-gradient(135deg, var(--cw-primary) 0%, var(--cw-primary-hover) 100%) !important;
   color: white !important;
-  border: 2px solid #00d4aa !important;
-  border-radius: 8px !important;
-  padding: 10px 15px !important;
+  border: none !important;
+  border-radius: var(--cw-radius) !important;
+  padding: var(--cw-space-sm) var(--cw-space-md) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: var(--cw-space-sm) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  transition: all 0.3s ease !important;
+  box-shadow: var(--cw-shadow) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   user-select: none !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.leetcode-ai-toggle::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%) !important;
+  border-radius: var(--cw-radius) !important;
+  pointer-events: none !important;
+}
+
+.leetcode-ai-toggle .toggle-icon {
+  position: relative !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 20px !important;
+  width: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+.leetcode-ai-toggle .toggle-text {
+  position: relative !important;
+  z-index: 1 !important;
+  white-space: nowrap !important;
 }
 
 .leetcode-ai-toggle:hover {
-  background: #2a2a2a !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: var(--cw-shadow-md) !important;
+}
+
+.leetcode-ai-toggle:active {
+  transform: translateY(0) !important;
+  transition: all 0.1s ease !important;
 }
 
 .leetcode-ai-toggle.active {
-  background: #00d4aa !important;
-  color: #1a1a1a !important;
+  background: linear-gradient(135deg, var(--cw-success) 0%, #0d9488 100%) !important;
+  color: white !important;
 }
 
-/* Panel styles */
+/* Modern Panel Styles */
 .leetcode-ai-panel {
   position: fixed !important;
-  top: 80px !important;
-  right: 20px !important;
-  width: 350px !important;
-  height: calc(100vh - 120px) !important;
-  background: #1a1a1a !important;
-  border: 1px solid #333 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
-  z-index: 9999 !important;
+  top: 10px !important;
+  right: var(--cw-space-sm) !important;
+  width: 380px !important;
+  height: calc(100vh - 20px) !important;
+  background: var(--cw-bg-primary) !important;
+  border: 1px solid var(--cw-border) !important;
+  border-radius: var(--cw-radius-lg) !important;
+  box-shadow: var(--cw-shadow-lg) !important;
+  z-index: 9999999 !important;
   display: none !important;
   overflow: hidden !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
 }
 
 .leetcode-ai-panel.left {
-  left: 20px !important;
+  left: var(--cw-space-xl) !important;
   right: auto !important;
 }
 
-/* Responsive adjustments */
+/* Panel Position States */
+.leetcode-ai-panel[data-state="maximized"] {
+  width: 420px !important;
+  height: calc(100vh - 100px) !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1400px) {
+  .leetcode-ai-panel {
+    width: 360px !important;
+  }
+  
+  .leetcode-ai-panel[data-state="maximized"] {
+    width: 400px !important;
+  }
+}
+
 @media (max-width: 1200px) {
   .leetcode-ai-panel {
-    width: 300px !important;
+    width: 340px !important;
+  }
+  
+  .leetcode-ai-panel[data-state="maximized"] {
+    width: 380px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .leetcode-ai-toggle {
+    top: var(--cw-space-md) !important;
+    right: var(--cw-space-md) !important;
+  }
+  
+  .leetcode-ai-panel {
+    top: 70px !important;
+    right: var(--cw-space-md) !important;
+    width: 320px !important;
+  }
+  
+  .leetcode-ai-panel.left {
+    left: var(--cw-space-md) !important;
+    right: auto !important;
+  }
+  
+  .leetcode-ai-panel[data-state="maximized"] {
+    width: 360px !important;
   }
 }
 
 @media (max-width: 768px) {
   .leetcode-ai-toggle {
-    top: 10px !important;
-    right: 10px !important;
-    padding: 8px 12px !important;
-    font-size: 12px !important;
+    top: var(--cw-space-sm) !important;
+    right: var(--cw-space-sm) !important;
+    padding: 6px 10px !important;
+    font-size: 13px !important;
   }
   
   .leetcode-ai-panel {
     top: 60px !important;
-    right: 10px !important;
-    width: 280px !important;
+    right: var(--cw-space-sm) !important;
+    width: 300px !important;
     height: calc(100vh - 80px) !important;
   }
   
   .leetcode-ai-panel.left {
-    left: 10px !important;
+    left: var(--cw-space-sm) !important;
     right: auto !important;
+  }
+  
+  .leetcode-ai-panel[data-state="maximized"] {
+    width: 340px !important;
   }
 }
 
-/* Ensure our elements are above LeetCode's modals and overlays */
+/* Mobile-specific Styles */
+@media (max-width: 576px) {
+  .leetcode-ai-toggle {
+    top: 5px !important;
+    right: 5px !important;
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+  }
+  
+  .leetcode-ai-panel {
+    top: 50px !important;
+    right: 5px !important;
+    left: 5px !important; /* Always full width on mobile */
+    width: calc(100vw - 10px) !important;
+    height: calc(100vh - 60px) !important;
+  }
+  
+  .leetcode-ai-panel[data-state="maximized"] {
+    width: calc(100vw - 10px) !important;
+  }
+}
+
+/* Z-index Management */
 .leetcode-ai-toggle,
 .leetcode-ai-panel {
   z-index: 999999 !important;
 }
 
-/* Hide our elements when LeetCode has fullscreen overlays */
+/* Hide elements during modals */
 body.modal-open .leetcode-ai-toggle,
 body.modal-open .leetcode-ai-panel {
   display: none !important;
 }
 
-/* Animation for panel show/hide */
-.leetcode-ai-panel.show {
+/* Modern Animations */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
+}
+
+/* Panel Entrance Animation */
+.leetcode-ai-panel.show.right {
   display: block !important;
-  animation: slideIn 0.3s ease-out !important;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.leetcode-ai-panel.hide {
-  animation: slideOut 0.3s ease-in !important;
+.leetcode-ai-panel.show.left {
+  display: block !important;
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* Panel Exit Animation */
+.leetcode-ai-panel.hide.right {
+  animation: slideOutRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
-@keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(20px);
-  }
+.leetcode-ai-panel.hide.left {
+  animation: slideOutLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
-/* Ensure text in our elements is readable */
-.leetcode-ai-toggle *,
-.leetcode-ai-panel * {
-  color: inherit !important;
-  text-decoration: none !important;
+/* Notification Indicator */
+.leetcode-ai-toggle .notification-indicator {
+  position: absolute !important;
+  top: -4px !important;
+  right: -4px !important;
+  width: 10px !important;
+  height: 10px !important;
+  background-color: var(--cw-error) !important;
+  border-radius: 50% !important;
+  animation: pulseGlow 2s infinite !important;
 }
 
-/* Override any conflicting LeetCode styles */
+/* Focus States & Accessibility */
+.leetcode-ai-toggle:focus-visible,
+.leetcode-ai-panel button:focus-visible,
+.leetcode-ai-panel input:focus-visible,
+.leetcode-ai-panel select:focus-visible {
+  outline: 2px solid var(--cw-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Override Any Conflicting LeetCode Styles */
 .leetcode-ai-panel input,
 .leetcode-ai-panel button,
 .leetcode-ai-panel select {
-  border-radius: 6px !important;
-  border: 1px solid #444 !important;
-  background: #2a2a2a !important;
-  color: #e0e0e0 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  border-radius: var(--cw-radius) !important;
+  transition: all 0.2s ease !important;
 }
 
 .leetcode-ai-panel button:hover {
-  background: #444 !important;
-  border-color: #00d4aa !important;
+  transform: translateY(-1px) !important;
 }
 
-/* Scrollbar styling for our panel */
-.leetcode-ai-panel ::-webkit-scrollbar {
+.leetcode-ai-panel button:active {
+  transform: translateY(0) !important;
+}
+
+/* Modern Scrollbar */
+.leetcode-ai-panel * {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+}
+
+.leetcode-ai-panel *::-webkit-scrollbar {
   width: 6px !important;
 }
 
-.leetcode-ai-panel ::-webkit-scrollbar-track {
-  background: #1a1a1a !important;
+.leetcode-ai-panel *::-webkit-scrollbar-track {
+  background: transparent !important;
 }
 
-.leetcode-ai-panel ::-webkit-scrollbar-thumb {
-  background: #444 !important;
-  border-radius: 3px !important;
+.leetcode-ai-panel *::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: var(--cw-radius-full) !important;
 }
 
-.leetcode-ai-panel ::-webkit-scrollbar-thumb:hover {
-  background: #555 !important;
+.leetcode-ai-panel *::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Reduced Motion Preference Support */
+@media (prefers-reduced-motion: reduce) {
+  .leetcode-ai-toggle,
+  .leetcode-ai-panel,
+  .leetcode-ai-panel * {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
+
+/* Print Media Query */
+@media print {
+  .leetcode-ai-toggle,
+  .leetcode-ai-panel {
+    display: none !important;
+  }
 }

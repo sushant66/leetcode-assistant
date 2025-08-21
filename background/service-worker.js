@@ -1,4 +1,4 @@
-// Background service worker for LeetCode AI Assistant
+// Background service worker for LeetWhisper
 // Handles AI API calls, storage management, and message passing
 
 // Import AI service

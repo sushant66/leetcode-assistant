@@ -105,9 +105,9 @@ leetcode-assistant/
 ### Advanced AI Features
 
 1. **Progressive Hint System**: 
-   - 4 hint types: High-level, Algorithm, Implementation, Detailed
+   - 2 hint types: Conceptual (approach & algorithms), Implementation (code & details)
    - 5 progressive levels per type (1-5) based on conversation context
-   - 20 total guidance approaches for personalized learning
+   - Adaptive guidance that evolves with the conversation
 
 2. **Smart Chat Management**:
    - Maintains last 3 conversation pairs for context
@@ -153,18 +153,20 @@ leetcode-assistant/
 ### Settings Available:
 - **API Key**: Your API key (OpenAI GPT-4.1 Mini or Google Gemini 2.5 Flash)
 - **AI Provider**: Choose between supported models
-- **Hint Level**: Default hint type (1=High-level, 2=Algorithm, 3=Implementation, 4=Detailed)
+- **Hint Level**: Default hint type (Conceptual or Implementation)
 - **Panel Position**: Left or right side of the screen
 
 ## 🧠 AI Hint System Details
 
-The extension uses a sophisticated 4×5 hint matrix:
+The extension uses a sophisticated 2×5 progressive hint system:
 
 ### Hint Types (User Setting):
-1. **High-level**: Conceptual approach and big-picture thinking
-2. **Algorithm**: Specific algorithms and data structures
-3. **Implementation**: Code structure and programming patterns
-4. **Detailed**: Comprehensive guidance with near-complete solutions
+1. **Conceptual**: High-level approach & algorithm suggestions
+   - Starts with big-picture thinking and problem category
+   - Progresses to specific algorithms and data structures
+2. **Implementation**: Code structure & detailed guidance
+   - Begins with implementation patterns and code organization
+   - Advances to comprehensive solutions with near-complete code
 
 ### Progressive Levels (Automatic):
 - **Level 1**: Gentle introduction and thought-provoking questions
@@ -195,7 +197,7 @@ Manual testing covers:
 - **Problem Detection**: Various LeetCode problem layouts and URL patterns
 - **AI Integration**: Both OpenAI and Gemini providers with different scenarios
 - **Code Extraction**: Monaco editor integration across different problem types  
-- **Progressive Hints**: All 4 hint types and 5 progressive levels
+- **Progressive Hints**: Both hint types with 5 progressive levels each
 - **Chat History**: Conversation management and problem switching
 - **Error Handling**: API failures, invalid keys, network issues
 - **UI Responsiveness**: Panel positioning, animations, and interactions

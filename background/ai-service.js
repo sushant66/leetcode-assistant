@@ -67,149 +67,88 @@ Respond in JSON format:
   }
 
 
-  // Get hint guidance based on type (1-4) and progressive level (1-5)
+  // Get hint guidance based on type (1 or 3) and progressive level (1-5)
   getHintGuidance(hintType, progressiveLevel) {
-    const typeTemplates = {
-      1: this.getHighLevelGuidance(progressiveLevel),
-      2: this.getAlgorithmGuidance(progressiveLevel),
-      3: this.getImplementationGuidance(progressiveLevel),
-      4: this.getDetailedGuidance(progressiveLevel)
-    };
+    // Map the two hint levels to appropriate guidance
+    // Level 1: Conceptual (combines high-level and algorithm)
+    // Level 3: Implementation (combines implementation and detailed)
     
-    return typeTemplates[hintType] || typeTemplates[1];
+    if (hintType === 1 || hintType === '1') {
+      return this.getConceptualGuidance(progressiveLevel);
+    } else if (hintType === 3 || hintType === '3') {
+      return this.getImplementationDetailedGuidance(progressiveLevel);
+    }
+    
+    // Default to conceptual if type is not recognized
+    return this.getConceptualGuidance(progressiveLevel);
   }
 
-  // Type 1: High-level approach hints
-  getHighLevelGuidance(level) {
+  // Merged Conceptual Guidance: Combines high-level approach with algorithm suggestions
+  getConceptualGuidance(level) {
     const templates = {
       1: {
-        style: "High-level conceptual",
+        style: "Conceptual introduction",
         guidance: "Give a very high-level conceptual hint about the problem approach.",
         rules: "- Focus on the big picture and problem category\n- Use conceptual language, not technical terms\n- Ask thought-provoking questions about the problem nature\n- Avoid mentioning specific algorithms or data structures"
       },
       2: {
-        style: "High-level directional",
-        guidance: "Give a clearer high-level direction while staying conceptual.",
-        rules: "- Point toward the general problem category\n- Can mention broad concepts like 'searching', 'organizing', 'tracking'\n- Still avoid specific algorithms\n- Give more direction than level 1"
+        style: "Conceptual direction",
+        guidance: "Give clearer direction about the approach and problem category.",
+        rules: "- Point toward the general problem category\n- Can mention broad concepts like 'searching', 'organizing', 'tracking'\n- Suggest the type of algorithmic thinking needed\n- Still avoid naming specific algorithms"
       },
       3: {
-        style: "High-level structural",
-        guidance: "Give structural insight about the high-level approach.",
-        rules: "- Describe the general structure of the solution\n- Can mention broad categories like 'two-pass', 'single-pass'\n- Still focus on approach rather than implementation\n- Guide toward the solution pattern"
+        style: "Algorithm categories",
+        guidance: "Guide toward specific algorithm families and approaches.",
+        rules: "- Mention broad algorithmic categories (e.g., 'dynamic programming approach', 'greedy strategy')\n- Describe the general structure of the solution\n- Can mention algorithm families like 'divide-and-conquer'\n- Guide toward the right algorithmic thinking"
       },
       4: {
-        style: "High-level comprehensive",
-        guidance: "Give comprehensive high-level guidance about the complete approach.",
-        rules: "- Explain the overall strategy and approach\n- Can mention general algorithmic concepts\n- Describe the flow of the solution\n- Still avoid detailed implementation"
-      },
-      5: {
-        style: "High-level complete",
-        guidance: "Give complete high-level understanding of the solution approach.",
-        rules: "- Provide full strategic overview\n- Explain why this approach works\n- Can mention algorithmic paradigms\n- Give complete conceptual understanding"
-      }
-    };
-    
-    return templates[level] || templates[1];
-  }
-
-  // Type 2: Algorithm suggestions hints
-  getAlgorithmGuidance(level) {
-    const templates = {
-      1: {
-        style: "Algorithm category",
-        guidance: "Suggest the general category of algorithm needed.",
-        rules: "- Mention broad algorithmic categories\n- Focus on the type of approach needed\n- Use questions to guide toward algorithm families\n- Keep suggestions general"
-      },
-      2: {
-        style: "Algorithm direction",
-        guidance: "Point toward specific algorithm families or approaches.",
-        rules: "- Suggest specific algorithm families\n- Can mention algorithm categories like 'greedy', 'divide-and-conquer'\n- Guide toward the right algorithmic thinking\n- Still let them discover the exact algorithm"
-      },
-      3: {
         style: "Algorithm specific",
         guidance: "Suggest specific algorithms or data structure choices.",
-        rules: "- Can mention specific algorithms by name\n- Suggest appropriate data structures\n- Explain why certain algorithms fit\n- Guide toward implementation approach"
-      },
-      4: {
-        style: "Algorithm detailed",
-        guidance: "Provide detailed algorithm suggestions with reasoning.",
-        rules: "- Explain specific algorithms and why they work\n- Mention time/space complexity considerations\n- Suggest optimization techniques\n- Give algorithmic implementation hints"
+        rules: "- Can mention specific algorithms by name\n- Suggest appropriate data structures\n- Explain why certain algorithms fit this problem\n- Mention time/space complexity considerations"
       },
       5: {
         style: "Algorithm comprehensive",
-        guidance: "Give complete algorithmic guidance and optimization strategies.",
-        rules: "- Provide full algorithmic solution strategy\n- Explain complexity analysis\n- Suggest optimizations and edge case handling\n- Give near-complete algorithmic roadmap"
+        guidance: "Give complete algorithmic guidance with strategic overview.",
+        rules: "- Provide full algorithmic solution strategy\n- Explain complexity analysis\n- Suggest optimizations and alternative approaches\n- Give complete conceptual and algorithmic understanding"
       }
     };
     
     return templates[level] || templates[1];
   }
 
-  // Type 3: Implementation hints
-  getImplementationGuidance(level) {
+  // Merged Implementation & Detailed Guidance: Combines code structure with detailed guidance
+  getImplementationDetailedGuidance(level) {
     const templates = {
       1: {
         style: "Implementation structure",
         guidance: "Give hints about how to structure the implementation.",
-        rules: "- Focus on code organization and structure\n- Suggest general implementation patterns\n- Guide toward the right code flow\n- Avoid specific syntax details"
+        rules: "- Focus on code organization and structure\n- Suggest general implementation patterns\n- Guide toward the right code flow\n- Describe what the solution needs to accomplish"
       },
       2: {
         style: "Implementation approach",
-        guidance: "Suggest specific implementation approaches and patterns.",
-        rules: "- Mention specific programming patterns\n- Suggest data structure usage\n- Guide toward implementation strategy\n- Can mention general code constructs"
+        guidance: "Suggest specific implementation patterns and code organization.",
+        rules: "- Mention specific programming patterns\n- Suggest data structure usage in code\n- Break down the solution into logical steps\n- Guide toward implementation strategy"
       },
       3: {
-        style: "Implementation specific",
-        guidance: "Give specific implementation guidance and code structure hints.",
-        rules: "- Suggest specific code patterns and constructs\n- Mention variable names and data types\n- Guide toward specific implementation details\n- Can reference common coding patterns"
+        style: "Implementation detailed",
+        guidance: "Give specific implementation guidance with code structure hints.",
+        rules: "- Suggest specific code patterns and constructs\n- Mention variable types and loop structures\n- Provide detailed algorithm steps in code terms\n- Include specific technical implementation details"
       },
       4: {
-        style: "Implementation detailed",
-        guidance: "Provide detailed implementation guidance with specific code hints.",
-        rules: "- Give specific variable and function suggestions\n- Mention exact conditions and loop structures\n- Suggest error handling and edge cases\n- Provide near-code-level guidance"
+        style: "Implementation comprehensive",
+        guidance: "Provide comprehensive implementation guidance with near-code details.",
+        rules: "- Give specific variable and function suggestions\n- Mention exact conditions and error handling\n- Include all edge cases and validation logic\n- Provide near-complete implementation roadmap"
       },
       5: {
-        style: "Implementation complete",
-        guidance: "Give comprehensive implementation guidance that's almost complete code.",
-        rules: "- Provide step-by-step implementation roadmap\n- Give specific code patterns and logic\n- Include optimization and edge case handling\n- Stop just short of writing the complete function"
+        style: "Implementation expert",
+        guidance: "Give expert-level implementation guidance that's almost complete code.",
+        rules: "- Provide step-by-step implementation with specific logic\n- Include advanced optimizations and techniques\n- Give multiple solution approaches with trade-offs\n- Stop just short of writing the complete function"
       }
     };
     
     return templates[level] || templates[1];
   }
 
-  // Type 4: Detailed guidance hints
-  getDetailedGuidance(level) {
-    const templates = {
-      1: {
-        style: "Detailed conceptual",
-        guidance: "Provide detailed explanation of the problem and solution concept.",
-        rules: "- Explain the problem thoroughly\n- Describe what the solution needs to accomplish\n- Break down the requirements clearly\n- Set up the foundation for detailed guidance"
-      },
-      2: {
-        style: "Detailed strategic",
-        guidance: "Give detailed strategic guidance about the solution approach.",
-        rules: "- Explain the complete strategy in detail\n- Break down the solution into logical steps\n- Describe the reasoning behind each step\n- Provide detailed problem-solving methodology"
-      },
-      3: {
-        style: "Detailed technical",
-        guidance: "Provide detailed technical guidance with specific implementation details.",
-        rules: "- Give specific technical implementation details\n- Explain data structure choices and usage\n- Provide detailed algorithm steps\n- Include complexity analysis and optimizations"
-      },
-      4: {
-        style: "Detailed comprehensive",
-        guidance: "Give comprehensive detailed guidance covering all aspects of the solution.",
-        rules: "- Provide complete detailed solution breakdown\n- Include all edge cases and error handling\n- Give optimization tips and alternative approaches\n- Cover testing and validation strategies"
-      },
-      5: {
-        style: "Detailed expert",
-        guidance: "Provide expert-level detailed guidance with advanced optimizations and insights.",
-        rules: "- Give expert-level implementation guidance\n- Include advanced optimizations and techniques\n- Provide multiple solution approaches with trade-offs\n- Include production-ready considerations"
-      }
-    };
-    
-    return templates[level] || templates[1];
-  }
 
   // Create prompt for code review
   createCodeReviewPrompt(codeData) {
@@ -254,7 +193,7 @@ Format your response as JSON:
   // Create prompt for chat response (unified system with hint types)
   createChatPrompt(chatData, settings) {
     const { message, problemData, chatHistory = [], isHintRequest = false } = chatData;
-    const hintType = settings.hintLevel || 1; // User's preferred hint type (1-4)
+    const hintType = settings.hintLevel || 1; // User's preferred hint type (1 or 3)
     
     const truncatedDescription = problemData.description && problemData.description.length > 150
       ? problemData.description.substring(0, 150) + '...'

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LeetWhisper",
+  "name": "LeetWhisper - AI Coding Mentor for LeetCode",
   "version": "1.0.0",
-  "description": "AI-powered assistant for LeetCode problem solving with guided learning approach",
+  "description": "Get personalized AI hints while solving LeetCode problems. Progressive guidance that helps you learn, not just copy solutions.",
   
   "permissions": [
     "storage",

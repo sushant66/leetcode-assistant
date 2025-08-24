@@ -58,8 +58,16 @@ class LeetCodeUIManager {
     toggle.id = 'leetcode-ai-toggle';
     toggle.className = 'leetcode-ai-toggle';
     toggle.innerHTML = `
-      <div class="toggle-icon">🤖</div>
-      <div class="toggle-text">AI Assistant</div>
+      <div class="toggle-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.09 8.26L19 9L13.09 9.74L12 14L10.91 9.74L5 9L10.91 8.26L12 2Z" fill="currentColor"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor" opacity="0.8"/>
+          <path d="M8 16.5C8 16.5 9.5 18 12 18C14.5 18 16 16.5 16 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="9" cy="12" r="1" fill="currentColor" opacity="0.6"/>
+          <circle cx="15" cy="12" r="1" fill="currentColor" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="toggle-text">LeetWhisper</div>
     `;
 
     // Add styles
@@ -460,10 +468,21 @@ class LeetCodeUIManager {
         font-size: 11px !important;
         font-weight: 600 !important;
         color: white !important;
-        background: var(--panel-warning) !important;
         padding: 2px 8px !important;
         border-radius: 12px !important;
         text-transform: uppercase !important;
+      }
+      
+      .leetcode-ai-panel .problem-difficulty-badge.difficulty-easy {
+        background: #10b981 !important;
+      }
+      
+      .leetcode-ai-panel .problem-difficulty-badge.difficulty-medium {
+        background: #f59e0b !important;
+      }
+      
+      .leetcode-ai-panel .problem-difficulty-badge.difficulty-hard {
+        background: #ef4444 !important;
       }
       
       .leetcode-ai-panel .context-title {
@@ -884,8 +903,12 @@ class LeetCodeUIManager {
     if (difficultyBadge && problemData.difficulty) {
       difficultyBadge.textContent = problemData.difficulty.toUpperCase();
       
-      // Update difficulty badge color
-      difficultyBadge.style.background = this.getDifficultyColor(problemData.difficulty);
+      // Remove existing difficulty classes
+      difficultyBadge.className = 'problem-difficulty-badge';
+      
+      // Add appropriate difficulty class
+      const difficultyClass = 'difficulty-' + problemData.difficulty.toLowerCase();
+      difficultyBadge.classList.add(difficultyClass);
     }
   }
 

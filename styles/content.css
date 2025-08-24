@@ -97,6 +97,12 @@
   flex-shrink: 0 !important;
 }
 
+.leetcode-ai-toggle .toggle-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+  fill: currentColor !important;
+}
+
 .leetcode-ai-toggle .toggle-text {
   position: relative !important;
   z-index: 1 !important;

@@ -114,6 +114,7 @@ async function checkExtensionStatus() {
       if (response && response.success && response.data) {
         updateStatus('Active', 'connected');
         updateProblemStatus(response.data.title || 'Problem detected');
+        updateProblemDifficulty(response.data.difficulty || 'Unknown');
       } else {
         updateStatus('Loading...', 'loading');
         updateProblemStatus('Problem loading...');
@@ -151,6 +152,29 @@ function updateStatus(text, type) {
 // Update problem status
 function updateProblemStatus(text) {
   elements.currentProblem.textContent = text;
+}
+
+// Update problem difficulty badge
+function updateProblemDifficulty(difficulty) {
+  const difficultyBadge = document.getElementById('problem-difficulty');
+  if (difficultyBadge) {
+    difficultyBadge.textContent = difficulty.toUpperCase();
+    
+    // Update difficulty badge color
+    let bgColor = '#f59e0b'; // default orange
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        bgColor = '#10b981'; // green
+        break;
+      case 'medium':
+        bgColor = '#f59e0b'; // orange
+        break;
+      case 'hard':
+        bgColor = '#ef4444'; // red
+        break;
+    }
+    difficultyBadge.style.background = bgColor;
+  }
 }
 
 // Setup event listeners

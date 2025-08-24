@@ -67,16 +67,32 @@ Respond in JSON format:
   }
 
 
-  // Get hint guidance based on type (1-4) and progressive level (1-5)
+  // Get hint guidance based on type (1 or 3) and progressive level (1-5)
   getHintGuidance(hintType, progressiveLevel) {
-    const typeTemplates = {
-      1: this.getHighLevelGuidance(progressiveLevel),
-      2: this.getAlgorithmGuidance(progressiveLevel),
-      3: this.getImplementationGuidance(progressiveLevel),
-      4: this.getDetailedGuidance(progressiveLevel)
-    };
+    // Map the two hint levels to appropriate guidance
+    // Level 1: Conceptual (combines high-level and algorithm)
+    // Level 3: Implementation (combines implementation and detailed)
     
-    return typeTemplates[hintType] || typeTemplates[1];
+    if (hintType === 1 || hintType === '1') {
+      // For conceptual hints, alternate between high-level and algorithm guidance
+      if (progressiveLevel <= 2) {
+        return this.getHighLevelGuidance(progressiveLevel);
+      } else {
+        // Map progressive levels 3-5 to algorithm guidance levels 1-3
+        return this.getAlgorithmGuidance(Math.min(progressiveLevel - 2, 3));
+      }
+    } else if (hintType === 3 || hintType === '3') {
+      // For implementation hints, alternate between implementation and detailed guidance
+      if (progressiveLevel <= 2) {
+        return this.getImplementationGuidance(progressiveLevel);
+      } else {
+        // Map progressive levels 3-5 to detailed guidance levels 1-3
+        return this.getDetailedGuidance(Math.min(progressiveLevel - 2, 3));
+      }
+    }
+    
+    // Default to conceptual/high-level if type is not recognized
+    return this.getHighLevelGuidance(progressiveLevel);
   }
 
   // Type 1: High-level approach hints
@@ -254,7 +270,7 @@ Format your response as JSON:
   // Create prompt for chat response (unified system with hint types)
   createChatPrompt(chatData, settings) {
     const { message, problemData, chatHistory = [], isHintRequest = false } = chatData;
-    const hintType = settings.hintLevel || 1; // User's preferred hint type (1-4)
+    const hintType = settings.hintLevel || 1; // User's preferred hint type (1 or 3)
     
     const truncatedDescription = problemData.description && problemData.description.length > 150
       ? problemData.description.substring(0, 150) + '...'

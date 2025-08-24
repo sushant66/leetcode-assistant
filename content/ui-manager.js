@@ -24,6 +24,7 @@ class LeetCodeUIManager {
       await this.loadSettings();
       this.injectAssistantToggle();
       this.setupEventListeners();
+      this.setupStorageListener();
       this.isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize UI Manager:', error);
@@ -73,8 +74,9 @@ class LeetCodeUIManager {
     // Add styles
     toggle.style.cssText = `
       position: fixed;
-      top: 20px;
+      top: 50%;
       right: 20px;
+      transform: translateY(-50%);
       z-index: 10000;
       background: #1a1a1a;
       color: white;
@@ -96,13 +98,13 @@ class LeetCodeUIManager {
     // Add hover effects
     toggle.addEventListener('mouseenter', () => {
       toggle.style.background = '#2a2a2a';
-      toggle.style.transform = 'translateY(-2px)';
+      toggle.style.transform = 'translateY(-50%) translateY(-2px)';
       toggle.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
     });
 
     toggle.addEventListener('mouseleave', () => {
       toggle.style.background = '#1a1a1a';
-      toggle.style.transform = 'translateY(0)';
+      toggle.style.transform = 'translateY(-50%)';
       toggle.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
     });
 
@@ -878,6 +880,37 @@ class LeetCodeUIManager {
         this.hideAssistantPanel();
       }
     });
+  }
+
+  // Setup storage listener for settings changes
+  setupStorageListener() {
+    // Listen for storage changes to update panel position immediately
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'sync' && changes.panelPosition) {
+        const newPosition = changes.panelPosition.newValue;
+        const oldPosition = changes.panelPosition.oldValue;
+        
+        if (newPosition !== oldPosition) {
+          // Update settings
+          this.settings.panelPosition = newPosition;
+          
+          // Update panel position if it exists and is visible
+          if (this.assistantPanel && this.isPanelVisible) {
+            this.updatePanelPosition(newPosition);
+          }
+        }
+      }
+    });
+  }
+
+  // Update panel position without recreating the entire panel
+  updatePanelPosition(newPosition) {
+    if (!this.assistantPanel) return;
+    
+    // Remove old position styles and apply new ones
+    this.assistantPanel.style.removeProperty('left');
+    this.assistantPanel.style.removeProperty('right');
+    this.assistantPanel.style.setProperty(newPosition, '10px', 'important');
   }
 
   // Update problem context in the panel

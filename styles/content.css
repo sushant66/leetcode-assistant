@@ -54,8 +54,9 @@
 /* Modern Toggle Button Styles */
 .leetcode-ai-toggle {
   position: fixed !important;
-  top: var(--cw-space-xl) !important;
+  top: 50% !important;
   right: var(--cw-space-xl) !important;
+  transform: translateY(-50%) !important;
   z-index: 10000 !important;
   background: linear-gradient(135deg, var(--cw-primary) 0%, var(--cw-primary-hover) 100%) !important;
   color: white !important;
@@ -110,12 +111,12 @@
 }
 
 .leetcode-ai-toggle:hover {
-  transform: translateY(-2px) !important;
+  transform: translateY(-50%) translateY(-2px) !important;
   box-shadow: var(--cw-shadow-md) !important;
 }
 
 .leetcode-ai-toggle:active {
-  transform: translateY(0) !important;
+  transform: translateY(-50%) !important;
   transition: all 0.1s ease !important;
 }
 

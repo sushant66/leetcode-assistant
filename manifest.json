@@ -52,8 +52,6 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "ui/assistant-panel.html",
-        "ui/assistant-panel.js",
         "styles/content.css",
         "content/monaco-extractor.js"
       ],
